@@ -67,6 +67,9 @@ void IssWrapper::reset(bool active)
 #if defined(CONFIG_GVSOC_ISS_SPATZ)
     this->iss.spatz.reset(active);
 #endif
+#if defined(CONFIG_GVSOC_ISS_QUADRILATERO)
+    this->iss.quadrilatero.reset(active);
+#endif
 }
 
 IssWrapper::IssWrapper(vp::ComponentConf &config)
@@ -95,6 +98,10 @@ IssWrapper::IssWrapper(vp::ComponentConf &config)
 
 #if defined(CONFIG_GVSOC_ISS_SPATZ)
     this->iss.spatz.build();
+#endif
+
+#if defined(CONFIG_GVSOC_ISS_QUADRILATERO)
+    this->iss.quadrilatero.build();
 #endif
 
     traces.new_trace("wrapper", &this->trace, vp::DEBUG);
