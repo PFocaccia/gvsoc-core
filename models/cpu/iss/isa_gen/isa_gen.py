@@ -327,13 +327,29 @@ class OutVRegF(OutReg):
     def __init__(self, id, ranges, dumpName=True):
         super(OutVRegF, self).__init__(id=id, ranges=ranges, dumpName=dumpName, flags=['ISS_DECODER_ARG_FLAG_VREG', 'ISS_DECODER_ARG_FLAG_FREG'])
 
+class OutMReg(OutReg):
+    def __init__(self, id, ranges, dumpName=True):
+        super(OutMReg, self).__init__(id=id, ranges=ranges, dumpName=dumpName, 
+                                      flags=['ISS_DECODER_ARG_FLAG_MREG'])
 
+class OutMRegF(OutReg):
+    def __init__(self, id, ranges, dumpName=True):
+        super(OutMRegF, self).__init__(id=id, ranges=ranges, dumpName=dumpName, 
+                                      flags=['ISS_DECODER_ARG_FLAG_MREG', 'ISS_DECODER_ARG_FLAG_FREG'])
+
+class OutMAcc(OutReg):
+    def __init__(self, id, ranges, dumpName=True):
+        super(OutMAcc, self).__init__(id=id, ranges=ranges, dumpName=dumpName, 
+                                      flags=['ISS_DECODER_ARG_FLAG_MREG', 'ISS_DECODER_ARG_FLAG_ACC'])
+
+class OutMAccF(OutReg):
+    def __init__(self, id, ranges, dumpName=True):
+        super(OutMAccF, self).__init__(id=id, ranges=ranges, dumpName=dumpName, 
+                flags=['ISS_DECODER_ARG_FLAG_MREG', 'ISS_DECODER_ARG_FLAG_ACC' , 'ISS_DECODER_ARG_FLAG_FREG' ])
 
 class OutReg64(OutReg):
     def __init__(self, id, ranges, dumpName=True):
         super(OutReg64, self).__init__(id=id, ranges=ranges, dumpName=dumpName, flags=['ISS_DECODER_ARG_FLAG_REG64'])
-
-
 
 class OutRegComp(OutReg):
     def __init__(self, id, ranges, dumpName=True):
@@ -450,7 +466,25 @@ class InVRegF(InReg):
         super(InVRegF, self).__init__(id=id, ranges=ranges, dumpName=dumpName,
             flags=['ISS_DECODER_ARG_FLAG_VEC', 'ISS_DECODER_ARG_FLAG_VREG', 'ISS_DECODER_ARG_FLAG_FREG'])
 
+class InMReg(InReg):
+    def __init__(self, id, ranges, dumpName=True):
+        super(InMReg, self).__init__(id=id, ranges=ranges, dumpName=dumpName, 
+                                     flags=['ISS_DECODER_ARG_FLAG_MREG'])
 
+class InMRegF(InReg):
+    def __init__(self, id, ranges, dumpName=True):
+        super(InMRegF, self).__init__(id=id, ranges=ranges, dumpName=dumpName,
+            flags=[ 'ISS_DECODER_ARG_FLAG_MREG', 'ISS_DECODER_ARG_FLAG_FREG'])
+
+class InMAcc(OutReg):
+    def __init__(self, id, ranges, dumpName=True):
+        super(InMAcc, self).__init__(id=id, ranges=ranges, dumpName=dumpName, 
+                                      flags=['ISS_DECODER_ARG_FLAG_MREG', 'ISS_DECODER_ARG_FLAG_ACC'])
+
+class InMAccF(OutReg):
+    def __init__(self, id, ranges, dumpName=True):
+        super(InMAccF, self).__init__(id=id, ranges=ranges, dumpName=dumpName, 
+            flags=['ISS_DECODER_ARG_FLAG_MREG', 'ISS_DECODER_ARG_FLAG_ACC' , 'ISS_DECODER_ARG_FLAG_FREG'])
 
 class InReg64(InReg):
     def __init__(self, id, ranges, dumpName=True):
