@@ -104,6 +104,11 @@ Csr::Csr(Iss &iss)
     this->declare_csr(&this->vl,     "vl",     0xC20);
     this->declare_csr(&this->vtype,  "vtype",  0xC21);
     this->declare_csr(&this->vlenb,  "vlenb",  0xC22, 32);
+
+    this->declare_csr(&this->matrix_k, "matrix_k", 0xCD0); 
+    this->declare_csr(&this->matrix_m, "matrix_m", 0xCD1);
+    this->declare_csr(&this->matrix_n, "matrix_n", 0xCD2);
+
 #if defined(CONFIG_GVSOC_ISS_PMP)
     // Machine protection and translation
     for (int i=0; i<16; i++)
