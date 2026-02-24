@@ -194,6 +194,8 @@ typedef enum
     ISS_DECODER_ARG_FLAG_ELEM_64    = (1 << 13),
     ISS_DECODER_ARG_FLAG_VEC        = (1 << 14),
     ISS_DECODER_ARG_FLAG_ELEM_SEW   = (1 << 15),
+    ISS_DECODER_ARG_FLAG_MREG       = (1 << 16),
+    ISS_DECODER_ARG_FLAG_ACC        = (1 << 17),
 } iss_decoder_arg_flag_e;
 
 typedef struct iss_insn_arg_s
