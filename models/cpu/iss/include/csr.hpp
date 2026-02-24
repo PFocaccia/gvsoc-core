@@ -245,6 +245,9 @@ public:
     CsrReg vl;
     CsrReg vtype;
     CsrReg vlenb;
+    CsrReg matrix_k;
+    CsrReg matrix_m;
+    CsrReg matrix_n;
 
 #if defined(CONFIG_GVSOC_ISS_RI5KY) || defined(CONFIG_GVSOC_ISS_HWLOOP)
     iss_reg_t hwloop_regs[HWLOOP_NB_REGS];
@@ -260,3 +263,4 @@ private:
     vp::WireMaster<uint64_t> time_itf;
 
 };
+
