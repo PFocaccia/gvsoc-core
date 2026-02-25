@@ -20,17 +20,17 @@
 #include "cpu/iss/include/isa_lib/mint.h"
 
 static inline iss_reg_t mcfgk_xi_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
-    printf("Qui ci siamo configura K!\n");
+    LIB_CALL3(lib_MCFGK, insn->in_regs[0], REG_GET(1), UIM_GET(0));
     return iss_insn_next(iss, insn, pc);
 }
 
 static inline iss_reg_t mcfgn_x_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
-    printf("Qui ci siamo configura N\n");
+    LIB_CALL2(lib_MCFGN, insn->in_regs[0], REG_GET(1));
     return iss_insn_next(iss, insn, pc);
 }
 
 static inline iss_reg_t mcfgm_x_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
-    printf("Qui ci siamo configura M\n");
+    LIB_CALL2(lib_MCFGM, insn->in_regs[0], REG_GET(1));
     return iss_insn_next(iss, insn, pc);
 }
 

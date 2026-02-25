@@ -248,6 +248,7 @@ public:
     CsrReg matrix_k;
     CsrReg matrix_m;
     CsrReg matrix_n;
+    CsrReg matrix_sew;
 
 #if defined(CONFIG_GVSOC_ISS_RI5KY) || defined(CONFIG_GVSOC_ISS_HWLOOP)
     iss_reg_t hwloop_regs[HWLOOP_NB_REGS];

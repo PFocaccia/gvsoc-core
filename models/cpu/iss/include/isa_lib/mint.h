@@ -13,6 +13,53 @@
 #define COL  iss -> quadrilatero.active_cols
 #define ROW  iss -> quadrilatero.active_rows
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                            MATRIX CFG
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+static inline void lib_MCFGK(Iss *iss, int rd, uint64_t requested_k, uint8_t imm3) {
+
+    iss->csr.matrix_sew.value = imm3; 
+    
+    uint64_t max_k_bytes = 256; 
+    uint64_t bytes_per_element = 1 << imm3;
+    uint64_t max_elements = max_k_bytes / bytes_per_element;
+    
+    uint64_t granted_k = (requested_k < max_elements) ? requested_k : max_elements;
+    
+    iss->csr.matrix_k.value = granted_k;
+    
+    iss->regfile.set_reg(rd, granted_k);
+
+    printf("MCFGK: SEW set to %lu bytes. K set to %lu (Requested: %lu)\n", bytes_per_element, granted_k, requested_k);
+}
+
+static inline void lib_MCFGM(Iss *iss, int rd, uint64_t requested_m) {
+    
+    uint64_t max_m = 64; 
+    
+    uint64_t granted_m = (requested_m < max_m) ? requested_m : max_m;
+    
+    iss->csr.matrix_m.value = granted_m;
+
+    iss->regfile.set_reg(rd, granted_m);
+
+    printf("MCFGM: M set to %lu (Requested: %lu)\n", granted_m, requested_m);
+}
+
+static inline void lib_MCFGN(Iss *iss, int rd, uint64_t requested_n) {
+    
+    uint64_t max_n = 64;
+    
+    uint64_t granted_n = (requested_n < max_n) ? requested_n : max_n;
+    
+    iss->csr.matrix_n.value = granted_n;
+    
+    iss->regfile.set_reg(rd, granted_n);
+    
+    printf("MCFGN: N set to %lu (Requested: %lu)\n", granted_n, requested_n);
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                                            MATRIX ZERO

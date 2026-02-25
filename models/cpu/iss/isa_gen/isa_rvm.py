@@ -82,12 +82,12 @@ Format_OPMS = [
 ]
 
 
-Format_OPMC = [ OutReg     (0, Range(7, 5)),  #rd
-                InReg      (0, Range(15, 5)), #rs
+Format_OPMC = [ InReg      (0, Range(7, 5)),  #rd
+                InReg      (1, Range(15, 5)), #rs
 ]
 
-Format_OPMCI = [ OutReg     (0, Range(7, 5)),  #rd
-                 InReg      (0, Range(15, 5)), #rs
+Format_OPMCI = [ InReg      (0, Range(7, 5)),  #rd
+                 InReg      (1, Range(15, 5)), #rs
                  UnsignedImm(0, Range(20, 3)),
 ]
 
