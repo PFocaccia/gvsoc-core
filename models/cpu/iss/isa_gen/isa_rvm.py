@@ -24,71 +24,113 @@ from cpu.iss.isa_gen.isa_riscv_gen import *
 
 # Encodings for matrix instruction set
 
-        # 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-#OPM     |  funct4   | 0  0  0  0|  ms2   |  ms1   | 0|  md | 0  0  0|  funct5   |     op           
-#OPMMV   |  funct4   | 0  0  0  0  0  0  0|  ms1   |   md   | 0  0  0|  funct5   |     op      
-#OPMZ    |  funct4   | 0  0  0| f| 0  0  0  0  0  0|   md   | 0  0  0|  funct5   |     op       
-#OPMLS      | 0  0  0| m|  ldst  |      rs2     |     rs1      |     | size| mds3|     op
-#OPMC    | 0| funct3 | 1  1  1  0  0         |     rs1      | 0  0  0|     rd    |     op 
-#OPMCI   | 0| funct3 | 1  1  1  0  0|   imm  |     rs1      | 0  0  0|     rd    |     op 
+                # 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+#RVMBASE           0  0  1  -  -  -  0  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+#RVMMACC           0  0  1  0  1  0  0 | md |    ms2    |    ms1    | 0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+#RVZEROA           0  0  1  0  0  0  0 | md | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1 
+#RVZEROM           0  0  1  0  0  1  0  0  0  0  0  0  0|    ms1    | 0  0  0  0  0  0  0  0  0  0  0  1  0  1  1 
+
+                # 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+#RVMMOVEBASE       0  1  0  -  -  -  0  -  -  -  -  0  0  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  1  0  1  1
+#RVMMOVEAM         0  1  0  0  0  0  0 | ms1| 0  0  0  0  0  0  0  0|     md    | 0  0  0  0  0  0  0  1  0  1  1
+#RVMMOVEAA         0  1  0  0  0  1  0 | ms1|  md | 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+#RVMMOVEMA         0  1  0  0  1  0  0  0  0|  md | 0  0 |   ms1    | 0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+#RVMMOVEMM         0  1  0  0  1  1  0  0  0  0  0  0  0 |   ms1    |     md    | 0  0  0  0  0  0  0  1  0  1  1
+
+                # 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+#RVMCFGBASE        0  1  1  -  -  -  0  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  1  0  1  1
+#RVMCFGK           0  1  1  0  0  0  0 |      rd     |      rs1     | 0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+#RVMCFGM           0  1  1  0  0  1  0 |      rd     |      rs1     |imm2 | 0  0  0  0  0  0  0  0  0  1  0  1  1
+#RVMCFGN           0  1  1  0  1  0  0 |      rd     |      rs1     |imm2 | 0  0  0  0  0  0  0  0  0  1  0  1  1
+#RVMCFGDT          0  1  1  0  1  1  0 |     imm5    |     imm5     |      imm5    | 0  0  0  0  0  0  1  0  1  1
+
+                # 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+#RVMLOADSTORE      0  0  0|  ldst  | 0 |     rs2     |     rs1      |    mds3   | 0  0  0  0  0  0  0  1  0  1  1
 
 
-Format_OPM = [ 
-                OutMAcc     (0, Range(15, 2)),
-                InMReg      (0, Range(18, 3)), #ms1
-                InMReg      (1, Range(21, 3)), #ms2
+
+                # 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
+# mld.lhs          0  0  0  0  0  0  0  -  -  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  1  0  1  1
+# mld.rhs          0  0  0  0  0  1  0  -  -  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  1  0  1  1
+# mst              0  0  0  0  1  0  0  -  -  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  1  0  1  1
+
+# mmac             0  0  1  0  1  0  0  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+
+# mzerom           0  0  1  0  0  1  0  0  0  0  0  0  0  -  -  -  -  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+# mzeroa           0  0  1  0  0  0  0  -  -  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+  
+# mmov.am          0  1  0  0  0  0  0  -  -  0  0  0  0  0  0  0  0  -  -  -  -  0  0  0  0  0  0  0  1  0  1  1
+# mmov.aa          0  1  0  0  0  1  0  -  -  -  -  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+# mmov.ma          0  1  0  0  1  0  0  0  0  -  -  0  0  -  -  -  -  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+# mmov.mm          0  1  0  0  1  1  0  0  0  0  0  0  0  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  1  0  1  1
+
+# mcfgk            0  1  1  0  0  0  0  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
+# mcfgm            0  1  1  0  0  1  0  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  0  0  1  0  1  1
+# mcfgn            0  1  1  0  1  0  0  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  0  0  1  0  1  1
+# mmac.dt         0  1  1  0  1  1  0  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  1  0  1  1
+
+
+Format_OPLOAD = [ 
+                    InMReg      (0, Range(11, 4)), #md3
+                    InReg       (1, Range(15, 5)), #rs1
+                    InReg       (2, Range(20, 5)), #rs2
 ]
 
-Format_OPMF = [ 
-                OutMAccF     (0, Range(15, 2)),
-                InMRegF      (0, Range(18, 3)), #ms1
-                InMRegF      (1, Range(21, 3)), #ms2
+Format_OPSTORE = [ 
+                    InMReg      (0, Range(11, 4)), #md3
+                    InReg       (1, Range(15, 5)), #rs1
+                    InReg       (2, Range(20, 5)), #rs2
+]
+
+Format_OPMAC = [ 
+                    InMReg      (0, Range(15, 4)), #ms1 
+                    InMReg      (1, Range(19, 4)), #ms2
+                    InMReg      (2, Range(23, 2)), #md
+]
+
+Format_OPZEROM = [ 
+                    InMReg      (0, Range(15, 4)), #md
+]
+
+Format_OPZEROA = [ 
+                    InMReg      (0, Range(23, 2)), #md
+]
+
+Format_OPMVAM = [  
+                    InMReg      (0, Range(11, 4)), #md
+                    InMReg      (1, Range(23, 2)), #accs
+]
+
+Format_OPMVAA = [  
+                    InMReg      (0, Range(21, 2)), #accd
+                    InMReg      (1, Range(23, 2)), #accs
+]
+
+Format_OPMVMA = [  
+                    InMReg      (0, Range(15, 4)), #ms1
+                    InMReg      (1, Range(21, 2)), #accd
 ]
 
 Format_OPMVMM = [ 
-                OutMReg     (0, Range(15, 3)),
-                InMReg      (0, Range(18, 3)),#ms1
+                    InMReg      (0, Range(11, 4)), #md 
+                    InMReg      (1, Range(15, 4)), #ms1
 ]
 
-Format_OPMVMA = [ 
-                OutMAcc     (0, Range(15, 3)),
-                InMReg      (0, Range(18, 3)), #ms1
+Format_OPCFGK = [ 
+                    InReg       (0, Range(15, 5)), #rs1 
+                    InReg       (1, Range(20, 5)), #rd
 ]
 
-Format_OPMVAM = [ 
-                OutMReg     (0, Range(15, 3)),
-                InMAcc      (0, Range(18, 3)),#ms1
+Format_OPCFGMN = [  
+                    UnsignedImm (0, Range(13, 2)), #imm2
+                    InReg       (0, Range(15, 5)), #rs1 
+                    InReg       (1, Range(20, 5)), #rd
 ]
 
-Format_OPMVAA = [ 
-                OutMAcc     (0, Range(15, 3)),
-                InMAcc      (0, Range(18, 3)),#ms1
-]
-
-Format_OPMZM = [ OutMReg     (0, Range(15, 3))]
-
-Format_OPMZA = [ OutMAcc     (0, Range(15, 3))]
-
-Format_OPML = [ 
-                OutMReg    (0, Range(7 , 3)),
-                InReg      (0, Range(15, 5)),#rs1
-                InReg      (1, Range(20, 5)),#rs2
-]
-
-Format_OPMS = [ 
-                OutMReg    (0, Range(7 , 3)),
-                InReg      (0, Range(15, 5)),#rs1
-                InReg      (1, Range(20, 5)),#rs2
-]
-
-
-Format_OPMC = [ InReg      (0, Range(7, 5)),  #rd
-                InReg      (1, Range(15, 5)), #rs
-]
-
-Format_OPMCI = [ InReg      (0, Range(7, 5)),  #rd
-                 InReg      (1, Range(15, 5)), #rs
-                 UnsignedImm(0, Range(20, 3)),
+Format_OPCFGDT = [  
+                    UnsignedImm (0, Range(10, 5)), #imm5
+                    UnsignedImm (1, Range(15, 5)), #imm5
+                    UnsignedImm (2, Range(20, 5)), #imm5
 ]
 
 class Rv32m(IsaSubset):
@@ -96,34 +138,24 @@ class Rv32m(IsaSubset):
     def __init__(self):
         super().__init__(name='M', instrs=[
 
-            Instr('mcfgk.xi'     ,   Format_OPMCI,    '000011100--------000-----0001011'),
-            Instr('mcfgm.x'      ,   Format_OPMC,     '000111100--------000-----0001011'),
-            Instr('mcfgn.x'      ,   Format_OPMC,     '001011100--------000-----0001011'),
-            
-            Instr('fmmaccb.ma'   ,   Format_OPMF,     '0001 000 0 --- --- 0 -- 000 00000 0001011'),
-            Instr('fmmacch.ma'   ,   Format_OPMF,     '0001 000 0 --- --- 0 -- 000 01000 0001011'),
-            Instr('fmmaccw.ma'   ,   Format_OPMF,     '0001 000 0 --- --- 0 -- 000 10000 0001011'),
+            Instr('mld.lhs'  ,   Format_OPLOAD , '0000 000- ---- ---- ---- -000 0000 1011'),
+            Instr('mld.rhs'  ,   Format_OPLOAD , '0000 010- ---- ---- ---- -000 0000 1011'),
+            Instr('mst'      ,   Format_OPSTORE, '0000 100- ---- ---- ---- -000 0000 1011'),
 
-            Instr('mmaqab.ma'    ,   Format_OPM,      '00100000------0--000000000001011'),
-            Instr('mmadah.ma'    ,   Format_OPM,      '00100000------0--000010000001011'),
-            Instr('mmasaw.ma'    ,   Format_OPM,      '00100000------0--000100000001011'),
+            Instr('mmacc'    ,   Format_OPMAC  , '0010 100- ---- ---- -000 0000 0000 1011'),
 
-            Instr('mmov.mm'      ,   Format_OPMVMM,   '00000000000------000000010001011'),
-            Instr('mmov.ma'      ,   Format_OPMVMA,   '00000000000------000010010001011'),
-            Instr('mmov.am'      ,   Format_OPMVAM,   '00000000000------000100010001011'),
-            Instr('mmov.aa'      ,   Format_OPMVAA,   '00000000000------000110010001011'),
+            Instr('mzero.m'  ,   Format_OPZEROM, '0010 0100 0000 0--- -000 0000 0000 1011'),
+            Instr('mzero.a'  ,   Format_OPZEROA, '0010 000- -000 0000 0000 0000 0000 1011'),
 
-            Instr('mzero.m'      ,   Format_OPMZM,    '10100000000000---000000000001011'),
-            Instr('mzero.a'      ,   Format_OPMZA,    '10100001000000---000000000001011'),
+            Instr('mmov.am'  ,   Format_OPMVAM , '0100 000- -000 0000 0--- -000 0000 1011'),
+            Instr('mmov.aa'  ,   Format_OPMVAA , '0100 010- ---0 0000 0000 0000 0000 1011'),
+            Instr('mmov.ma'  ,   Format_OPMVMA , '0100 1000 0--0 0--- -000 0000 0000 1011'),
+            Instr('mmov.mm'  ,   Format_OPMVMM , '0100 1100 0000 0--- ---- -000 0000 1011'),
 
-            Instr('mldlhsb.m'    ,   Format_OPML,     '000 0 100 ----- ----- --- 00 --- 0001011'),
-            Instr('mldlhsh.m'    ,   Format_OPML,     '000 0 100 ----- ----- --- 01 --- 0001011'),                                            
-            Instr('mldlhsw.m'    ,   Format_OPML,     '000 0 100 ----- ----- --- 10 --- 0001011'),
-            Instr('mldrhsb.m'    ,   Format_OPML,     '000 1 100 ----- ----- --- 00 --- 0001011'),
-            Instr('mldrhsh.m'    ,   Format_OPML,     '000 1 100 ----- ----- --- 01 --- 0001011'),
-            Instr('mldrhsw.m'    ,   Format_OPML,     '000 1 100 ----- ----- --- 10 --- 0001011'),
+            Instr('mcfgk'    ,   Format_OPCFGK , '0110 000- ---- ---- -000 0000 0000 1011'),
+            Instr('mcfgm'    ,   Format_OPCFGMN, '0110 010- ---- ---- ---0 0000 0000 1011'),
+            Instr('mcfgn'    ,   Format_OPCFGMN, '0110 100- ---- ---- ---0 0000 0000 1011'),
+            Instr('mmac.dt'  ,   Format_OPCFGDT, '0110 110- ---- ---- ---- --00 0000 1011'),
 
-            Instr('mstb.m'       ,   Format_OPMS,     '000 0 101 ----- ----- --- 00 --- 0001011'),
-            Instr('msth.m'       ,   Format_OPMS,     '000 0 101 ----- ----- --- 01 --- 0001011'),
-            Instr('mstw.m'       ,   Format_OPMS,     '000 0 101 ----- ----- --- 10 --- 0001011'),
+
     ])

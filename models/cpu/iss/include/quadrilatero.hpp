@@ -14,7 +14,8 @@
 #define REG_OUT(reg) (insn->out_regs[reg])
 
 #define ISS_NB_MREGS 16
-#define ISS_NB_ACCREGS 8      
+#define ISS_NB_ACCREGS 4      
+#define RLEN 128
 #define MAT_DIM_ROWS 4      
 #define MAT_DIM_COLS 4      
 
