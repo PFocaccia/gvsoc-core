@@ -38,6 +38,9 @@ Iss::Iss(IssWrapper &top)
 #if defined(CONFIG_GVSOC_ISS_USE_SPATZ)
       , vector(*this), ara(top, *this)
 #endif
+#if defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
+      , quadrilatero(*this)
+#endif
 {
     this->csr.declare_csr(&this->csr_fmode, "fmode", 0x800);
     this->csr.declare_csr(&this->barrier,  "barrier",   0x7C2);
@@ -164,6 +167,9 @@ void IssWrapper::reset(bool active)
     this->insn_last = 0;
     this->nb_pending_insn = 0;
 #endif
+#if defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
+    this->iss.quadrilatero.reset(active);
+#endif
 }
 
 IssWrapper::IssWrapper(vp::ComponentConf &config)
@@ -194,6 +200,9 @@ IssWrapper::IssWrapper(vp::ComponentConf &config)
     {
         this->pending_insns[i].id = i;
     }
+#endif
+#if defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
+    this->iss.quadrilatero.build();
 #endif
 }
 

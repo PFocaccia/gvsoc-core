@@ -48,7 +48,7 @@ public:
     void handle_pending_io_access(Iss *iss);
 
     vp::IoMaster io_itf[4];
-    vp::IoReq io_req;
+    vp::IoReq io_reqs[4];
     vp::ClockEvent *event;
     int io_retval;
     uint64_t io_pending_addr;

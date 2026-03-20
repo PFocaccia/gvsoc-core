@@ -38,10 +38,10 @@ from cpu.iss.isa_gen.isa_riscv_gen import *
 #RVMMOVEMM         0  1  0  0  1  1  0  0  0  0  0  0  0 |   ms1    |     md    | 0  0  0  0  0  0  0  1  0  1  1
 
                 # 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
-#RVMCFGBASE        0  1  1  -  -  -  0  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  1  0  1  1
-#RVMCFGK           0  1  1  0  0  0  0 |      rd     |      rs1     | 0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
-#RVMCFGM           0  1  1  0  0  1  0 |      rd     |      rs1     |imm2 | 0  0  0  0  0  0  0  0  0  1  0  1  1
-#RVMCFGN           0  1  1  0  1  0  0 |      rd     |      rs1     |imm2 | 0  0  0  0  0  0  0  0  0  1  0  1  1
+#RVMCFGBASE        0  1  1  -  -  -  0  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  1  0  1  1
+#RVMCFGK           0  1  1  0  0  0  0  0  0  0  0  0|      rs1     | 0  0  0 |      rd      |0  0  0  1  0  1  1
+#RVMCFGM           0  1  1  0  0  1  0  0  0  0  0  0|      rs1     |imm2 | 0 |      rd      |0  0  0  1  0  1  1
+#RVMCFGN           0  1  1  0  1  0  0  0  0  0  0  0|      rs1     |imm2 | 0 |      rd      |0  0  0  1  0  1  1
 #RVMCFGDT          0  1  1  0  1  1  0 |     imm5    |     imm5     |      imm5    | 0  0  0  0  0  0  1  0  1  1
 
                 # 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10  9  8  7  6  5  4  3  2  1  0
@@ -64,10 +64,10 @@ from cpu.iss.isa_gen.isa_riscv_gen import *
 # mmov.ma          0  1  0  0  1  0  0  0  0  -  -  0  0  -  -  -  -  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
 # mmov.mm          0  1  0  0  1  1  0  0  0  0  0  0  0  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  1  0  1  1
 
-# mcfgk            0  1  1  0  0  0  0  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  0  0  0  0  1  0  1  1
-# mcfgm            0  1  1  0  0  1  0  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  0  0  1  0  1  1
-# mcfgn            0  1  1  0  1  0  0  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  0  0  0  1  0  1  1
-# mmac.dt         0  1  1  0  1  1  0  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  1  0  1  1
+# mcfgk            0  1  1  0  0  0  0  0  0  0  0  0  -  -  -  -  -  0  0  0  -  -  -  -  -  0  0  0  1  0  1  1
+# mcfgm            0  1  1  0  0  1  0  0  0  0  0  0  -  -  -  -  -  -  -  0  -  -  -  -  -  0  0  0  1  0  1  1
+# mcfgn            0  1  1  0  1  0  0  0  0  0  0  0  -  -  -  -  -  -  -  0  -  -  -  -  -  0  0  0  1  0  1  1
+# mmac.dt          0  1  1  0  1  1  0  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  0  0  0  0  0  0  1  0  1  1
 
 
 Format_OPLOAD = [ 
@@ -117,14 +117,14 @@ Format_OPMVMM = [
 ]
 
 Format_OPCFGK = [ 
+                    InReg       (1, Range( 7, 5)), #rd
                     InReg       (0, Range(15, 5)), #rs1 
-                    InReg       (1, Range(20, 5)), #rd
 ]
 
 Format_OPCFGMN = [  
-                    UnsignedImm (0, Range(13, 2)), #imm2
+                    InReg       (1, Range( 7, 5)), #rd
+                    UnsignedImm (0, Range(13, 2)), #imm2    
                     InReg       (0, Range(15, 5)), #rs1 
-                    InReg       (1, Range(20, 5)), #rd
 ]
 
 Format_OPCFGDT = [  
@@ -152,9 +152,9 @@ class Rv32m(IsaSubset):
             Instr('mmov.ma'  ,   Format_OPMVMA , '0100 1000 0--0 0--- -000 0000 0000 1011'),
             Instr('mmov.mm'  ,   Format_OPMVMM , '0100 1100 0000 0--- ---- -000 0000 1011'),
 
-            Instr('mcfgk'    ,   Format_OPCFGK , '0110 000- ---- ---- -000 0000 0000 1011'),
-            Instr('mcfgm'    ,   Format_OPCFGMN, '0110 010- ---- ---- ---0 0000 0000 1011'),
-            Instr('mcfgn'    ,   Format_OPCFGMN, '0110 100- ---- ---- ---0 0000 0000 1011'),
+            Instr('mcfgk'    ,   Format_OPCFGK , '0110 0000 0000 ---- -000 ---- -000 1011'),
+            Instr('mcfgm'    ,   Format_OPCFGMN, '0110 0100 0000 ---- ---0 ---- -000 1011'),
+            Instr('mcfgn'    ,   Format_OPCFGMN, '0110 1000 0000 ---- ---0 ---- -000 1011'),
             Instr('mmac.dt'  ,   Format_OPCFGDT, '0110 110- ---- ---- ---- --00 0000 1011'),
 
 

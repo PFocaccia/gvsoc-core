@@ -250,7 +250,9 @@ public:
     CsrReg matrix_n;
     CsrReg matrix_rmul;
     CsrReg matrix_cmul;
-    CsrReg matrix_dt;
+    CsrReg matrix_dt_a;
+    CsrReg matrix_dt_b;
+    CsrReg matrix_dt_c;
 ;
 
 #if defined(CONFIG_GVSOC_ISS_RI5KY) || defined(CONFIG_GVSOC_ISS_HWLOOP)

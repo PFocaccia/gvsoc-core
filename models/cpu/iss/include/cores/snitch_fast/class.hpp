@@ -55,6 +55,11 @@
 #if defined(CONFIG_GVSOC_ISS_SPATZ)
 #include <cpu/iss/include/spatz.hpp>
 #endif
+
+#if defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
+#include <cpu/iss/include/quadrilatero.hpp>
+#endif
+
 #if defined(CONFIG_GVSOC_ISS_SSR)
 #include <cpu/iss/include/cores/snitch_fast/ssr.hpp>
 #endif
@@ -103,6 +108,10 @@ public:
 
 #if defined(CONFIG_GVSOC_ISS_SPATZ)
     Spatz spatz;
+#endif
+
+#if defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
+    Quadrilatero quadrilatero;
 #endif
 
 #if defined(CONFIG_GVSOC_ISS_SSR)
@@ -173,6 +182,11 @@ static inline iss_reg_t fmode_get(Iss *iss, iss_insn_t *insn)
 #error 1
 #include "cpu/iss/include/isa/rv32v.hpp"
 #endif
+
+#if defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
+#include "cpu/iss/include/isa/rv32mat.hpp"
+#endif
+
 #include "cpu/iss/include/isa/rv32c.hpp"
 #include "cpu/iss/include/isa/zcmp.hpp"
 #include "cpu/iss/include/isa/rv32a.hpp"

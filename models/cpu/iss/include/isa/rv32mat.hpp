@@ -38,7 +38,8 @@ static inline iss_reg_t mcfgn_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
 }
 
 static inline iss_reg_t mmac_dt_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
-    printf("MMAC.DT is OK, imm5[0]=%d, imm5[1]=%d, imm5[2]=%d\n", UIM_GET(0), UIM_GET(1), UIM_GET(2));
+    //printf("MCFG_DT is OK, immA=%d, immB=%d, immC=%d\n", UIM_GET(1), UIM_GET(0), UIM_GET(2));
+    LIB_CALL3(lib_MCFGDT, UIM_GET(1), UIM_GET(0), UIM_GET(2));
     return iss_insn_next(iss, insn, pc);
 }
 
@@ -80,19 +81,19 @@ static inline iss_reg_t mzero_a_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
 
 static inline iss_reg_t mmacc_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
     //printf("MMACC is OK, accd=%d, ms1=%d, ms2=%d\n", REG_IN(2), REG_IN(0), REG_IN(1));
-    LIB_CALL3(lib_MMASAW, REG_IN(2), REG_IN(0), REG_IN(1));
+    LIB_CALL3(lib_MAC, REG_IN(2), REG_IN(0), REG_IN(1));
     return iss_insn_next(iss, insn, pc);
 }
 
 static inline iss_reg_t mld_lhs_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
     //printf("MLD.LHS is OK, md=%d, rs1=%d, rs2=%d\n", REG_IN(0), REG_IN(1), REG_IN(2));
-    LIB_CALL3(lib_MLD32L, REG_IN(0), REG_GET(1), REG_GET(2));
+    LIB_CALL3(lib_MLDL, REG_IN(0), REG_GET(1), REG_GET(2));
     return iss_insn_next(iss, insn, pc);
 }
 
 static inline iss_reg_t mld_rhs_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
     //printf("MLD.RHS is OK, md=%d, rs1=%d, rs2=%d\n", REG_IN(0), REG_IN(1), REG_IN(2));
-    LIB_CALL3(lib_MLD32R, REG_IN(0), REG_GET(1), REG_GET(2));
+    LIB_CALL3(lib_MLDR, REG_IN(0), REG_GET(1), REG_GET(2));
     return iss_insn_next(iss, insn, pc);
 }
 
