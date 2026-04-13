@@ -157,10 +157,12 @@ void IssWrapper::reset(bool active)
     this->iss.decode.reset(active);
     this->iss.gdbserver.reset(active);
 
-#if defined(CONFIG_GVSOC_ISS_USE_SPATZ)
+#if defined(CONFIG_GVSOC_ISS_USE_SPATZ) || defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
     this->iss.syscalls.reset(active);
+    #if defined(CONFIG_GVSOC_ISS_USE_SPATZ)
     this->iss.vector.reset(active);
     this->iss.ara.reset(active);
+    #endif
 
     this->do_flush = false;
     this->insn_first = 0;
@@ -195,6 +197,8 @@ IssWrapper::IssWrapper(vp::ComponentConf &config)
 #if defined(CONFIG_GVSOC_ISS_USE_SPATZ)
     this->iss.vector.build();
     this->iss.ara.build();
+#endif
+#if defined(CONFIG_GVSOC_ISS_USE_SPATZ) || defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
     this->pending_insns.resize(8);
     for (int i=0; i<this->pending_insns.size(); i++)
     {
@@ -203,10 +207,11 @@ IssWrapper::IssWrapper(vp::ComponentConf &config)
 #endif
 #if defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
     this->iss.quadrilatero.build();
+    this->iss.quadrilatero.isa_init();
 #endif
 }
 
-#if defined(CONFIG_GVSOC_ISS_USE_SPATZ)
+#if defined(CONFIG_GVSOC_ISS_USE_SPATZ) || defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
 PendingInsn &IssWrapper::pending_insn_alloc()
 {
     this->nb_pending_insn++;
@@ -261,6 +266,10 @@ void IssWrapper::insn_commit(PendingInsn *pending_insn)
     }
 
 }
+
+#endif
+
+#if defined(CONFIG_GVSOC_ISS_USE_SPATZ)
 
 iss_reg_t IssWrapper::vector_insn_stub_handler(Iss *iss, iss_insn_t *insn, iss_reg_t pc)
 {
@@ -334,5 +343,12 @@ iss_reg_t IssWrapper::vector_insn_stub_handler(Iss *iss, iss_insn_t *insn, iss_r
     iss->ara.insn_enqueue(&pending_insn);
 
     return iss_insn_next(iss, insn, pc);
+}
+#endif
+
+#if defined(CONFIG_GVSOC_ISS_USE_QUADRILATERO)
+iss_reg_t IssWrapper::matrix_insn_stub_handler(Iss *iss, iss_insn_t *insn, iss_reg_t pc)
+{
+    return Quadrilatero::insn_stub_handler(iss, insn, pc);
 }
 #endif

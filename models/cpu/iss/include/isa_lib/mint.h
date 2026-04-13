@@ -423,11 +423,13 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
         return; 
     }
 
+    int64_t max_done = -1;
+
     for(int k = 0; k < K; k++) {     
         
         uint64_t current_row_addr = addr + (k * stride);
         
-        for(int m = 0; m < M; m++) { 
+        for(int m = 0; m < M; m += 4) { 
             
             uint64_t elem_addr = current_row_addr + (m * 4);
             
@@ -438,17 +440,22 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
             int row = k % n_row;           
             int col = (m % n_col) * 4;       
 
-            uint8_t word_data[4];
-            iss->quadrilatero.mlsu.Mlsu_io_access(iss, elem_addr, 4, word_data, false);
+            int remaining = M - m;
+            int bytes = remaining >= 4 ? 16 : remaining * 4;
+            uint8_t *dst = &iss->quadrilatero.mregfile.mregs[mdT][row][col];
 
-            iss->quadrilatero.mregfile.mregs[mdT][row][col + 0] = word_data[0];
-            iss->quadrilatero.mregfile.mregs[mdT][row][col + 1] = word_data[1];
-            iss->quadrilatero.mregfile.mregs[mdT][row][col + 2] = word_data[2];
-            iss->quadrilatero.mregfile.mregs[mdT][row][col + 3] = word_data[3];
+            int64_t done = iss->quadrilatero.mlsu.enqueue_load(elem_addr, bytes, dst);
+            if (done > max_done) max_done = done;
         }
     }
 
-    
+    if (max_done >= 0)
+    {
+        int block = tot_reg < 1 ? 1 : tot_reg;
+        iss->quadrilatero.mreg_block_set_ready(md, false, max_done, block);
+    }
+
+    /*
     // DEBUG
     printf("\n--- (mld.lhs.w)(md=%d) - Logical: %dx%d (but is trasposed)---\n", md, M, K);
     
@@ -470,7 +477,7 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
         }
     }
     printf("--------------------------------------------------\n");
-    
+    */
 }
 
 
@@ -503,11 +510,13 @@ static inline void lib_MLDR(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
         return; 
     }
 
+    int64_t max_done = -1;
+
     for(int k = 0; k < K; k++) {     
         
         uint64_t current_row_addr = addr + (k * stride);
         
-        for(int n = 0; n < N; n++) { 
+        for(int n = 0; n < N; n += 4) { 
             
             uint64_t elem_addr = current_row_addr + (n * 4);
             
@@ -518,17 +527,22 @@ static inline void lib_MLDR(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
             int row = k % n_row;           
             int col = (n % n_col) * 4;       
 
-            uint8_t word_data[4];
-            iss->quadrilatero.mlsu.Mlsu_io_access(iss, elem_addr, 4, word_data, false);
+            int remaining = N - n;
+            int bytes = remaining >= 4 ? 16 : remaining * 4;
+            uint8_t *dst = &iss->quadrilatero.mregfile.mregs[mdT][row][col];
 
-            iss->quadrilatero.mregfile.mregs[mdT][row][col + 0] = word_data[0];
-            iss->quadrilatero.mregfile.mregs[mdT][row][col + 1] = word_data[1];
-            iss->quadrilatero.mregfile.mregs[mdT][row][col + 2] = word_data[2];
-            iss->quadrilatero.mregfile.mregs[mdT][row][col + 3] = word_data[3];
+            int64_t done = iss->quadrilatero.mlsu.enqueue_load(elem_addr, bytes, dst);
+            if (done > max_done) max_done = done;
         }
     }
 
-    
+    if (max_done >= 0)
+    {
+        int block = tot_reg < 1 ? 1 : tot_reg;
+        iss->quadrilatero.mreg_block_set_ready(md, false, max_done, block);
+    }
+
+    /*
     // DEBUG
     printf("\n--- (mld.rhs.w)(md=%d) - Logical: %dx%d ---\n", md, K, N);
     
@@ -550,7 +564,7 @@ static inline void lib_MLDR(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
         }
     }
     printf("--------------------------------------------------\n");
-    
+    */
 }
 
 
@@ -588,7 +602,7 @@ static inline void lib_MST (Iss *iss, int ms, iss_reg_t rs1, iss_reg_t rs2){
 
         uint64_t current_row_addr = add + (m * stride);
 
-        for(int n=0; n<N; n++){
+        for(int n=0; n<N; n += 4){
 
             int rowT = m / n_row;  
             int colT = n / n_col;  
@@ -597,15 +611,10 @@ static inline void lib_MST (Iss *iss, int ms, iss_reg_t rs1, iss_reg_t rs2){
             int row = m % n_row;           
             int col = (n % n_col) * 4;       
 
-            uint8_t word_data[4];
-            word_data[0] = iss->quadrilatero.mregfile.mregs[msT][row][col+0];
-            word_data[1] = iss->quadrilatero.mregfile.mregs[msT][row][col+1];
-            word_data[2] = iss->quadrilatero.mregfile.mregs[msT][row][col+2];
-            word_data[3] = iss->quadrilatero.mregfile.mregs[msT][row][col+3];
-
-            iss->quadrilatero.mlsu.Mlsu_io_access(iss, current_row_addr, 4, word_data, true);
-
-            current_row_addr += 4;
+            int remaining = N - n;
+            int bytes = remaining >= 4 ? 16 : remaining * 4;
+            uint8_t *src = &iss->quadrilatero.mregfile.mregs[msT][row][col];
+            iss->quadrilatero.mlsu.enqueue_store(current_row_addr + (n * 4), bytes, src);
         }
     }
     
@@ -664,31 +673,32 @@ static inline void lib_MACI32(Iss *iss, int md, int ms1, int ms2) {
     for(int m=0; m<M; m++){
         for(int n=0; n<N; n++){
 
-            int rowC = m / 4;  
-            int colC = n / 4;  
+            int rowC = m / dim;  
+            int colC = n / dim;  
             int mdC = md + (rowC * tiles_per_row_C) + colC;
              
-            int row = m % 4;
-            int col = n % 4;
+            int row = m % dim;
+            int col = n % dim;
         
             int64_t accumulator = 0;
 
             for(int k = 0; k < K; k++){
                 
-                int colA = k / 4;
+                int colA = k / dim;
+                int rowA = k % dim;
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
                 int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
 
-                int32_t a0 = (int32_t)(  (iss->quadrilatero.mregfile.mregs[mA][k][(row*4)+0] << 0)  |
-                                         (iss->quadrilatero.mregfile.mregs[mA][k][(row*4)+1] << 8)  |
-                                         (iss->quadrilatero.mregfile.mregs[mA][k][(row*4)+2] << 16) |
-                                         (iss->quadrilatero.mregfile.mregs[mA][k][(row*4)+3] << 24));
+                int32_t a0 = (int32_t)(  (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+0] << 0)  |
+                                         (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+1] << 8)  |
+                                         (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+2] << 16) |
+                                         (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+3] << 24));
 
-                int32_t b0 = (int32_t)(  (iss->quadrilatero.mregfile.mregs[mB][k][(col*4)+0] << 0)  |
-                                         (iss->quadrilatero.mregfile.mregs[mB][k][(col*4)+1] << 8)  |
-                                         (iss->quadrilatero.mregfile.mregs[mB][k][(col*4)+2] << 16) |
-                                         (iss->quadrilatero.mregfile.mregs[mB][k][(col*4)+3] << 24));
+                int32_t b0 = (int32_t)(  (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+0] << 0)  |
+                                         (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+1] << 8)  |
+                                         (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+2] << 16) |
+                                         (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+3] << 24));
                 
                 accumulator += (int64_t)a0 * b0;
 
@@ -788,18 +798,18 @@ static inline void lib_MACI16(Iss *iss, int md, int ms1, int ms2) {
     for(int m=0; m<M; m++){
         for(int n=0; n<N; n++){
 
-            int rowC = m / 4;  
-            int colC = n / 4;  
+            int rowC = m / dim;  
+            int colC = n / dim;  
             int mdC = md + (rowC * tiles_per_row_C) + colC;
              
-            int row = m % 4;
-            int col = n % 4;
+            int row = m % dim;
+            int col = n % dim;
         
             int64_t accumulator = 0;
 
             for(int k = 0; k < K; k++){
                 
-                int colA = k / 8;
+                int colA = k / (dim * 2);
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
                 int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
@@ -842,7 +852,7 @@ static inline void lib_MACI16(Iss *iss, int md, int ms1, int ms2) {
         }
     }
 
-    
+    /*
     printf("\n--- (mac.i16)(md=%d) - Logical: %dx%d ---\n", md, M, N);
     
     for (int r = md; r < 4 ; r++) {
@@ -863,7 +873,7 @@ static inline void lib_MACI16(Iss *iss, int md, int ms1, int ms2) {
         }
     }
     printf("--------------------------------------------------\n");
-    
+    */
 
 }
 
@@ -920,12 +930,12 @@ static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
     for(int m=0; m<M; m++){
         for(int n=0; n<N; n++){
 
-            int rowC = m / 4;  
-            int colC = n / 4;  
+            int rowC = m / dim;  
+            int colC = n / dim;  
             int mdC = md + (rowC * tiles_per_row_C) + colC;
              
-            int row = m % 4;
-            int col = n % 4;
+            int row = m % dim;
+            int col = n % dim;
 
             flexfloat_t ff_acc;
             ff_acc.desc = desc_fp32;
@@ -933,20 +943,21 @@ static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
 
             for(int k = 0; k < K; k++){
                 
-                int colA = k / 4;
+                int colA = k / dim;
+                int rowA = k % dim;
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
                 int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
 
-                int32_t a0 = (int32_t)(  (iss->quadrilatero.mregfile.mregs[mA][k][(row*4)+0] << 0)  |
-                                         (iss->quadrilatero.mregfile.mregs[mA][k][(row*4)+1] << 8)  |
-                                         (iss->quadrilatero.mregfile.mregs[mA][k][(row*4)+2] << 16) |
-                                         (iss->quadrilatero.mregfile.mregs[mA][k][(row*4)+3] << 24));
+                int32_t a0 = (int32_t)(  (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+0] << 0)  |
+                                         (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+1] << 8)  |
+                                         (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+2] << 16) |
+                                         (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+3] << 24));
 
-                int32_t b0 = (int32_t)(  (iss->quadrilatero.mregfile.mregs[mB][k][(col*4)+0] << 0)  |
-                                         (iss->quadrilatero.mregfile.mregs[mB][k][(col*4)+1] << 8)  |
-                                         (iss->quadrilatero.mregfile.mregs[mB][k][(col*4)+2] << 16) |
-                                         (iss->quadrilatero.mregfile.mregs[mB][k][(col*4)+3] << 24));
+                int32_t b0 = (int32_t)(  (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+0] << 0)  |
+                                         (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+1] << 8)  |
+                                         (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+2] << 16) |
+                                         (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+3] << 24));
                 
                 flexfloat_t ff_a0, ff_b0;
                 

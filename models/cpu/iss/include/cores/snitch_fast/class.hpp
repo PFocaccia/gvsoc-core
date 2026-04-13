@@ -146,13 +146,14 @@ public:
     void reset(bool active);
     void stop();
     void insn_commit(PendingInsn *pending_insn);
+    PendingInsn &pending_insn_enqueue(iss_insn_t *insn, iss_reg_t pc);
     static iss_reg_t vector_insn_stub_handler(Iss *iss, iss_insn_t *insn, iss_reg_t pc);
+    static iss_reg_t matrix_insn_stub_handler(Iss *iss, iss_insn_t *insn, iss_reg_t pc);
 
     Iss iss;
 
 private:
     PendingInsn &pending_insn_alloc();
-    PendingInsn &pending_insn_enqueue(iss_insn_t *insn, iss_reg_t pc);
 
     vp::Trace trace;
 
