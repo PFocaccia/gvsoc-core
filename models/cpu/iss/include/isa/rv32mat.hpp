@@ -39,7 +39,7 @@ static inline iss_reg_t mcfgn_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
 
 static inline iss_reg_t mmac_dt_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc){
     //printf("MCFG_DT is OK, immA=%d, immB=%d, immC=%d\n", UIM_GET(1), UIM_GET(0), UIM_GET(2));
-    LIB_CALL3(lib_MCFGDT, UIM_GET(1), UIM_GET(0), UIM_GET(2));
+    LIB_CALL3(lib_MCFGDT, UIM_GET(2), UIM_GET(1), UIM_GET(0));
     return iss_insn_next(iss, insn, pc);
 }
 

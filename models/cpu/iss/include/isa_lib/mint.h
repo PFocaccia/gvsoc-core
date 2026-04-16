@@ -66,51 +66,42 @@ static inline void lib_MCFGN(Iss *iss, int rd, uint64_t requested_n, uint8_t imm
 }
 
 
-static inline void lib_MCFGDT(Iss *iss, uint8_t immA, uint8_t immB, uint8_t immC) {
+static inline void lib_MCFGDT(Iss *iss, uint8_t immC , uint8_t immA, uint8_t immB) {
     
     switch (immA) {
-        case INT32:
-            iss->csr.matrix_dt_a.value = immA;
-            break;
+        case INT32: iss->csr.matrix_dt_a.value = immA;  break;
+        case FP32:  iss->csr.matrix_dt_a.value = immA;  break;
+        case FP16:  iss->csr.matrix_dt_a.value = immA;  break;
+        case INT16: iss->csr.matrix_dt_a.value = immA;  break;    
+        case FP8:   iss->csr.matrix_dt_a.value = immA;  break;
+        case INT8:  iss->csr.matrix_dt_a.value = immA;  break;    
 
-        case FP32:
-            iss->csr.matrix_dt_a.value = immA;
-            break;
-
-        default:
-            printf("MCFG_DT: value %d is not correct for A matrix\n");
-            break;
+        default:    printf("MCFG_DT: value %d is not correct for A matrix\n");  break;
     }
     
     switch (immB) {
-        case INT32:
-            iss->csr.matrix_dt_b.value = immB;
-            break;
+        case INT32: iss->csr.matrix_dt_b.value = immB;  break;
+        case FP32:  iss->csr.matrix_dt_b.value = immB;  break;
+        case FP16:  iss->csr.matrix_dt_b.value = immB;  break;
+        case INT16: iss->csr.matrix_dt_b.value = immB;  break;    
+        case FP8:   iss->csr.matrix_dt_b.value = immB;  break;
+        case INT8:  iss->csr.matrix_dt_b.value = immB;  break;
 
-        case FP32:
-            iss->csr.matrix_dt_b.value = immB;
-            break;
-
-        default:
-            printf("MCFG_DT: value %d is not correct for B matrix\n");
-            break;
+        default:    printf("MCFG_DT: value %d is not correct for B matrix\n");  break;
     }
 
     switch (immC) {
-        case INT32:
-            iss->csr.matrix_dt_c.value = immC;
-            break;
+        case INT32: iss->csr.matrix_dt_c.value = immC;  break;
+        case FP32:  iss->csr.matrix_dt_c.value = immC;  break;
+        case FP16:  iss->csr.matrix_dt_c.value = immC;  break;
+        case INT16: iss->csr.matrix_dt_c.value = immC;  break;    
+        case FP8:   iss->csr.matrix_dt_c.value = immC;  break;
+        case INT8:  iss->csr.matrix_dt_c.value = immC;  break;
 
-        case FP32:
-            iss->csr.matrix_dt_c.value = immC;
-            break;
-
-        default:
-            printf("MCFG_DT: value %d is not correct for C matrix\n");
-            break;
+        default:    printf("MCFG_DT: value %d is not correct for C matrix\n");  break;
     }
 
-    //printf("MCFG_DT: set %d for A, %d for B and %d for C\n", immA, immB, immC);
+    //printf("MCFG_DT: set %d for A, %d for B and %d for C\n", immA , immB, immC);
 }
 
 
@@ -399,7 +390,10 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
     int rmul = iss->csr.matrix_rmul.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
+ 
+    if( iss->csr.matrix_dt_a.value == INT16 || iss->csr.matrix_dt_a.value == FP16 ) K = (K+1) / 2; 
+    if( iss->csr.matrix_dt_a.value == INT8 || iss->csr.matrix_dt_a.value == FP8   ) K = (K+3) / 4;
+
     int dim = RLEN/32;
 
     if (md % rmul != 0){
@@ -410,12 +404,15 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
     uint64_t addr = rs1;
     uint64_t stride = rs2;   
 
+    if( iss->csr.matrix_dt_a.value == INT16 || iss->csr.matrix_dt_a.value == FP16 ) stride *= 2; 
+    if( iss->csr.matrix_dt_a.value == INT8 || iss->csr.matrix_dt_a.value == FP8   ) stride *= 4;
+
     int n_row = dim; 
     int n_col = dim;
     
     int tiles_per_row = (M + n_col - 1) / n_col; 
     int tiles_per_col = (K + n_row - 1) / n_row; 
-
+ 
     int tot_reg = tiles_per_row * tiles_per_col;
 
     if (md + tot_reg > ISS_NB_MREGS) {             
@@ -455,9 +452,9 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
         iss->quadrilatero.mreg_block_set_ready(md, false, max_done, block);
     }
 
-    /*
+    /*    
     // DEBUG
-    printf("\n--- (mld.lhs.w)(md=%d) - Logical: %dx%d (but is trasposed)---\n", md, M, K);
+    printf("\n--- (mld.lhs.w)(md=%d) - Logical: %dx%d (but is trasposed)(stride=%d)(addr=%d)---\n", md, M, K, stride, addr);
     
     for (int r = md; r < md + tot_reg ; r++) {
         
@@ -487,6 +484,9 @@ static inline void lib_MLDR(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
     int N = iss->csr.matrix_n.value;
     int K = iss->csr.matrix_k.value;
     
+    if( iss->csr.matrix_dt_a.value == INT16 || iss->csr.matrix_dt_a.value == FP16 ) K = (K+1) / 2; 
+    if( iss->csr.matrix_dt_a.value == INT8 || iss->csr.matrix_dt_a.value == FP8   ) K = (K+3) / 4;
+
     int dim = RLEN/32;
 
     if (md % cmul != 0){
@@ -496,6 +496,9 @@ static inline void lib_MLDR(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
 
     uint64_t addr = rs1;
     uint64_t stride = rs2;   
+
+    if( iss->csr.matrix_dt_a.value == INT16 || iss->csr.matrix_dt_a.value == FP16 ) stride *= 2; 
+    if( iss->csr.matrix_dt_a.value == INT8 || iss->csr.matrix_dt_a.value == FP8   ) stride *= 4;
 
     int n_row = dim; 
     int n_col = dim;
@@ -573,6 +576,8 @@ static inline void lib_MST (Iss *iss, int ms, iss_reg_t rs1, iss_reg_t rs2){
     uint64_t add = rs1;
     uint64_t stride = rs2;    
 
+    //printf("Stride: %d  Addr: %d\n", stride, add);
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
@@ -647,7 +652,6 @@ static inline void lib_MACI32(Iss *iss, int md, int ms1, int ms2) {
 
     int tiles_per_row_C = (N + dim - 1) / dim; 
     int tiles_per_col_C = (M + dim - 1) / dim;
-
     
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
 
@@ -764,10 +768,10 @@ static inline void lib_MACI16(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = (K + dim - 1) / dim; 
+    int tiles_per_row_A = ((K/2) + dim - 1) / dim; 
     int tiles_per_col_A = (M + dim - 1) / dim; 
 
-    int tiles_per_row_B = (K + dim - 1) / dim; 
+    int tiles_per_row_B = ((K/2) + dim - 1) / dim; 
     int tiles_per_col_B = (N + dim - 1) / dim;
 
     int tiles_per_row_C = (N + dim - 1) / dim; 
@@ -875,6 +879,115 @@ static inline void lib_MACI16(Iss *iss, int md, int ms1, int ms2) {
     printf("--------------------------------------------------\n");
     */
 
+}
+
+static inline void lib_MACI8(Iss *iss, int md, int ms1, int ms2) {
+    
+    int rmul = iss->csr.matrix_rmul.value;
+    int cmul = iss->csr.matrix_cmul.value;
+    int N = iss->csr.matrix_n.value;
+    int M = iss->csr.matrix_m.value;
+    int K = iss->csr.matrix_k.value;
+    
+    if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
+        printf("(mac.i8) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
+        return;
+    }
+
+    int dim = RLEN/32;
+
+    int tiles_per_row_A = (K + (dim * 4) - 1) / (dim * 4); 
+    int tiles_per_col_A = (M + dim - 1) / dim; 
+
+    int tiles_per_row_B = (K + (dim * 4) - 1) / (dim * 4); 
+    int tiles_per_col_B = (N + dim - 1) / dim;
+
+    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_col_C = (M + dim - 1) / dim;
+
+    
+    int tot_reg = tiles_per_row_A * tiles_per_col_A;
+
+    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+        printf("(mac.i8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
+        return; 
+    }
+
+    tot_reg = tiles_per_row_B * tiles_per_col_B;
+
+    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+        printf("(mac.i8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
+        return; 
+    }
+
+    tot_reg = tiles_per_row_C * tiles_per_col_C;
+
+    if (md + tot_reg > ISS_NB_ACCREGS) {             
+        printf("(mac.i8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
+        return; 
+    }
+
+    for(int m = 0; m < M; m++){
+        for(int n = 0; n < N; n++){
+
+            int rowC = m / dim;  
+            int colC = n / dim;  
+            int mdC = md + (rowC * tiles_per_row_C) + colC;
+             
+            int row = m % dim;
+            int col = n % dim;
+        
+            int64_t accumulator = 0;
+
+            for(int k = 0; k < K; k += 4){
+                
+                int colA = k / (dim * 4);
+
+                int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+
+                int depth = (k / 4) % dim;
+
+                int8_t a0 = (int8_t)iss->quadrilatero.mregfile.mregs[mA][depth][(row*4)+0];
+                int8_t b0 = (int8_t)iss->quadrilatero.mregfile.mregs[mB][depth][(col*4)+0];
+                accumulator += (int64_t)a0 * b0;
+
+                if(k + 1 < K) {
+                    int8_t a1 = (int8_t)iss->quadrilatero.mregfile.mregs[mA][depth][(row*4)+1];
+                    int8_t b1 = (int8_t)iss->quadrilatero.mregfile.mregs[mB][depth][(col*4)+1];
+                    accumulator += (int64_t)a1 * b1;
+                }
+
+                if(k + 2 < K) {
+                    int8_t a2 = (int8_t)iss->quadrilatero.mregfile.mregs[mA][depth][(row*4)+2];
+                    int8_t b2 = (int8_t)iss->quadrilatero.mregfile.mregs[mB][depth][(col*4)+2];
+                    accumulator += (int64_t)a2 * b2;
+                }
+
+                if(k + 3 < K) {
+                    int8_t a3 = (int8_t)iss->quadrilatero.mregfile.mregs[mA][depth][(row*4)+3];
+                    int8_t b3 = (int8_t)iss->quadrilatero.mregfile.mregs[mB][depth][(col*4)+3];
+                    accumulator += (int64_t)a3 * b3;
+                }
+            }
+
+            int32_t prev_md = (int32_t)((iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+0] << 0)  |
+                                        (iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+1] << 8)  |
+                                        (iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+2] << 16) |
+                                        (iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] << 24));
+
+            int64_t final_val = accumulator + prev_md;
+
+            if (final_val > INT32_MAX) final_val = INT32_MAX;
+            if (final_val < INT32_MIN) final_val = INT32_MIN;
+
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+0] = (uint8_t)(final_val & 0xFF);
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+1] = (uint8_t)((final_val >> 8) & 0xFF);
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+2] = (uint8_t)((final_val >> 16) & 0xFF);
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_val >> 24) & 0xFF);
+
+        }
+    }
 }
 
 static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
@@ -1027,6 +1140,301 @@ static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
 
 }
 
+static inline void lib_MACF16(Iss *iss, int md, int ms1, int ms2) {
+    
+    int rmul = iss->csr.matrix_rmul.value;
+    int cmul = iss->csr.matrix_cmul.value;
+    int N = iss->csr.matrix_n.value;
+    int M = iss->csr.matrix_m.value;
+    int K = iss->csr.matrix_k.value;
+
+    if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
+        printf("(mac.fp16) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
+        return;
+    }
+
+    int dim = RLEN/32;
+
+    int tiles_per_row_A = ((K/2) + dim - 1) / dim; 
+    int tiles_per_col_A = (M + dim - 1) / dim; 
+
+    int tiles_per_row_B = ((K/2) + dim - 1) / dim; 
+    int tiles_per_col_B = (N + dim - 1) / dim;
+
+    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_col_C = (M + dim - 1) / dim;
+
+    int tot_reg = tiles_per_row_A * tiles_per_col_A;
+    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+        printf("(mac.fp16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
+        return; 
+    }
+
+    tot_reg = tiles_per_row_B * tiles_per_col_B;
+    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+        printf("(mac.fp16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
+        return; 
+    }
+
+    tot_reg = tiles_per_row_C * tiles_per_col_C;
+    if (md + tot_reg > ISS_NB_ACCREGS) {             
+        printf("(mac.fp16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
+        return; 
+    }
+
+    flexfloat_desc_t desc_fp16 = (flexfloat_desc_t){5, 10};
+    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23}; 
+    int old_frm = setFFRoundingMode(iss, iss->csr.fcsr.frm);
+
+    for(int m = 0; m < M; m++){
+        for(int n = 0; n < N; n++){
+
+            int rowC = m / dim;  
+            int colC = n / dim;  
+            int mdC = md + (rowC * tiles_per_row_C) + colC;
+             
+            int row = m % dim;
+            int col = n % dim;
+
+            flexfloat_t ff_acc;
+            ff_acc.desc = desc_fp32;
+            flexfloat_set_bits(&ff_acc, 0x00000000);
+
+            for(int k = 0; k < K; k++){
+                
+                int colA = k / (dim * 2);
+
+                int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+
+                uint16_t a0_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+0] << 0) |
+                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+1] << 8) );
+                
+                uint16_t a1_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+2] << 0) |
+                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+3] << 8) );
+
+                uint16_t b0_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mB][k/2][(col*4)+0] << 0) |
+                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[mB][k/2][(col*4)+1] << 8) );
+
+                uint16_t b1_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mB][k/2][(col*4)+2] << 0) |
+                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[mB][k/2][(col*4)+3] << 8) );
+
+
+                flexfloat_t ff_a0, ff_b0, ff_a0_32, ff_b0_32;
+                ff_a0.desc = desc_fp16; flexfloat_set_bits(&ff_a0, a0_bits);
+                ff_b0.desc = desc_fp16; flexfloat_set_bits(&ff_b0, b0_bits);
+                
+                ff_a0_32.desc = desc_fp32; ff_a0_32.value = ff_a0.value;
+                ff_b0_32.desc = desc_fp32; ff_b0_32.value = ff_b0.value;
+
+                feclearexcept(FE_ALL_EXCEPT);
+                ff_fma(&ff_acc, &ff_a0_32, &ff_b0_32, &ff_acc);
+                update_fflags_fenv(iss);
+
+                k++;
+
+                if(k < K) {
+                    flexfloat_t ff_a1, ff_b1, ff_a1_32, ff_b1_32;
+                    ff_a1.desc = desc_fp16; flexfloat_set_bits(&ff_a1, a1_bits);
+                    ff_b1.desc = desc_fp16; flexfloat_set_bits(&ff_b1, b1_bits);
+
+                    ff_a1_32.desc = desc_fp32; ff_a1_32.value = ff_a1.value;
+                    ff_b1_32.desc = desc_fp32; ff_b1_32.value = ff_b1.value;
+
+                    feclearexcept(FE_ALL_EXCEPT);
+                    ff_fma(&ff_acc, &ff_a1_32, &ff_b1_32, &ff_acc);
+                    update_fflags_fenv(iss);
+
+                }
+
+            }
+
+            uint32_t prev_md_bits = (uint32_t)((iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+0] << 0)  |
+                                               (iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+1] << 8)  |
+                                               (iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+2] << 16) |
+                                               (iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] << 24));
+
+            flexfloat_t ff_prev, ff_final;
+            ff_prev.desc  = desc_fp32; flexfloat_set_bits(&ff_prev, prev_md_bits);
+            ff_final.desc = desc_fp32;
+            
+            feclearexcept(FE_ALL_EXCEPT);
+            ff_add(&ff_final, &ff_acc, &ff_prev);
+            update_fflags_fenv(iss);
+
+            uint32_t final_bits = flexfloat_get_bits(&ff_final);
+            
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+0] = (uint8_t)(final_bits & 0xFF);
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+1] = (uint8_t)((final_bits >> 8) & 0xFF);
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+2] = (uint8_t)((final_bits >> 16) & 0xFF);
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);                            
+        }
+    }
+
+    restoreFFRoundingMode(old_frm);
+
+}
+
+static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
+    
+    int rmul = iss->csr.matrix_rmul.value;
+    int cmul = iss->csr.matrix_cmul.value;
+    int N = iss->csr.matrix_n.value;
+    int M = iss->csr.matrix_m.value;
+    int K = iss->csr.matrix_k.value;
+    
+    if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
+        printf("(mac.fp8) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
+        return;
+    }
+
+    int dim = RLEN/32;
+
+    int tiles_per_row_A = (K + (dim * 4) - 1) / (dim * 4); 
+    int tiles_per_col_A = (M + dim - 1) / dim; 
+
+    int tiles_per_row_B = (K + (dim * 4) - 1) / (dim * 4); 
+    int tiles_per_col_B = (N + dim - 1) / dim;
+
+    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_col_C = (M + dim - 1) / dim;
+
+    int tot_reg = tiles_per_row_A * tiles_per_col_A;
+    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+        printf("(mac.fp8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
+        return; 
+    }
+
+    tot_reg = tiles_per_row_B * tiles_per_col_B;
+    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+        printf("(mac.fp8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
+        return; 
+    }
+
+    tot_reg = tiles_per_row_C * tiles_per_col_C;
+    if (md + tot_reg > ISS_NB_ACCREGS) {             
+        printf("(mac.fp8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
+        return; 
+    }
+
+    flexfloat_desc_t desc_fp8  = (flexfloat_desc_t){4, 3}; // E4M3
+    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23}; 
+    int old_frm = setFFRoundingMode(iss, iss->csr.fcsr.frm);
+
+    for (int m = 0; m < M; m++) {
+        for (int n = 0; n < N; n++) {
+
+            int rowC = m / dim;  
+            int colC = n / dim;  
+            int mdC = md + (rowC * tiles_per_row_C) + colC;
+             
+
+            int row = m % dim;
+            int col = n % dim;
+
+            flexfloat_t ff_acc;
+            ff_acc.desc = desc_fp32;
+            flexfloat_set_bits(&ff_acc, 0x00000000);
+
+            for (int k = 0; k < K; k += 4) {
+                
+
+                int colA = k / (dim * 4);
+
+                int mA = ms1 + (rowC * tiles_per_row_A) + colA;
+                int mB = ms2 + (colC * tiles_per_row_B) + colA; 
+
+                int depth = (k / 4) % dim;
+
+                uint8_t a0_bits = iss->quadrilatero.mregfile.mregs[mA][depth][(row*4)+0];
+                uint8_t a1_bits = iss->quadrilatero.mregfile.mregs[mA][depth][(row*4)+1];
+                uint8_t a2_bits = iss->quadrilatero.mregfile.mregs[mA][depth][(row*4)+2];
+                uint8_t a3_bits = iss->quadrilatero.mregfile.mregs[mA][depth][(row*4)+3];
+
+                uint8_t b0_bits = iss->quadrilatero.mregfile.mregs[mB][depth][(col*4)+0];
+                uint8_t b1_bits = iss->quadrilatero.mregfile.mregs[mB][depth][(col*4)+1];
+                uint8_t b2_bits = iss->quadrilatero.mregfile.mregs[mB][depth][(col*4)+2];
+                uint8_t b3_bits = iss->quadrilatero.mregfile.mregs[mB][depth][(col*4)+3];
+
+                if (k + 0 < K) {
+                    flexfloat_t ff_a0, ff_b0, ff_a0_32, ff_b0_32;
+                    ff_a0.desc = desc_fp8; flexfloat_set_bits(&ff_a0, a0_bits);
+                    ff_b0.desc = desc_fp8; flexfloat_set_bits(&ff_b0, b0_bits);
+                    
+                    ff_a0_32.desc = desc_fp32; ff_a0_32.value = ff_a0.value;
+                    ff_b0_32.desc = desc_fp32; ff_b0_32.value = ff_b0.value;
+
+                    feclearexcept(FE_ALL_EXCEPT);
+                    ff_fma(&ff_acc, &ff_a0_32, &ff_b0_32, &ff_acc);
+                    update_fflags_fenv(iss);
+                }
+
+                if (k + 1 < K) {
+                    flexfloat_t ff_a1, ff_b1, ff_a1_32, ff_b1_32;
+                    ff_a1.desc = desc_fp8; flexfloat_set_bits(&ff_a1, a1_bits);
+                    ff_b1.desc = desc_fp8; flexfloat_set_bits(&ff_b1, b1_bits);
+                    
+                    ff_a1_32.desc = desc_fp32; ff_a1_32.value = ff_a1.value;
+                    ff_b1_32.desc = desc_fp32; ff_b1_32.value = ff_b1.value;
+
+                    feclearexcept(FE_ALL_EXCEPT);
+                    ff_fma(&ff_acc, &ff_a1_32, &ff_b1_32, &ff_acc);
+                    update_fflags_fenv(iss);
+                }
+
+                if (k + 2 < K) {
+                    flexfloat_t ff_a2, ff_b2, ff_a2_32, ff_b2_32;
+                    ff_a2.desc = desc_fp8; flexfloat_set_bits(&ff_a2, a2_bits);
+                    ff_b2.desc = desc_fp8; flexfloat_set_bits(&ff_b2, b2_bits);
+                    
+                    ff_a2_32.desc = desc_fp32; ff_a2_32.value = ff_a2.value;
+                    ff_b2_32.desc = desc_fp32; ff_b2_32.value = ff_b2.value;
+
+                    feclearexcept(FE_ALL_EXCEPT);
+                    ff_fma(&ff_acc, &ff_a2_32, &ff_b2_32, &ff_acc);
+                    update_fflags_fenv(iss);
+                }
+
+                if (k + 3 < K) {
+                    flexfloat_t ff_a3, ff_b3, ff_a3_32, ff_b3_32;
+                    ff_a3.desc = desc_fp8; flexfloat_set_bits(&ff_a3, a3_bits);
+                    ff_b3.desc = desc_fp8; flexfloat_set_bits(&ff_b3, b3_bits);
+                    
+                    ff_a3_32.desc = desc_fp32; ff_a3_32.value = ff_a3.value;
+                    ff_b3_32.desc = desc_fp32; ff_b3_32.value = ff_b3.value;
+
+                    feclearexcept(FE_ALL_EXCEPT);
+                    ff_fma(&ff_acc, &ff_a3_32, &ff_b3_32, &ff_acc);
+                    update_fflags_fenv(iss);
+                }
+            }
+
+            uint32_t prev_md_bits = (uint32_t)((iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+0] << 0)  |
+                                               (iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+1] << 8)  |
+                                               (iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+2] << 16) |
+                                               (iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] << 24));
+
+            flexfloat_t ff_prev, ff_final;
+            ff_prev.desc  = desc_fp32; flexfloat_set_bits(&ff_prev, prev_md_bits);
+            ff_final.desc = desc_fp32;
+            
+            feclearexcept(FE_ALL_EXCEPT);
+            ff_add(&ff_final, &ff_acc, &ff_prev);
+            update_fflags_fenv(iss);
+
+            uint32_t final_bits = flexfloat_get_bits(&ff_final);
+
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+0] = (uint8_t)(final_bits & 0xFF);
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+1] = (uint8_t)((final_bits >> 8) & 0xFF);
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+2] = (uint8_t)((final_bits >> 16) & 0xFF);
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);                            
+        }
+    }
+
+    restoreFFRoundingMode(old_frm);
+
+}
+
 static inline void lib_MAC(Iss *iss, int md, int ms1, int ms2) {
     switch (iss->csr.matrix_dt_a.value) {
         case INT32:
@@ -1038,19 +1446,19 @@ static inline void lib_MAC(Iss *iss, int md, int ms1, int ms2) {
             break;
             
         case INT16:
-            //lib_MACI16(iss, md, ms1, ms2);
+            lib_MACI16(iss, md, ms1, ms2);
             break;
             
         case INT8:
-            //lib_MACI8(iss, md, ms1, ms2);
+            lib_MACI8(iss, md, ms1, ms2);
             break;
             
         case FP16: 
-            //lib_MACF16(iss, md, ms1, ms2);
+            lib_MACF16(iss, md, ms1, ms2);
             break;
             
         case FP8:
-            //lib_MACF8(iss, md, ms1, ms2);
+            lib_MACF8(iss, md, ms1, ms2);
             break;
             
         default:
@@ -1058,435 +1466,3 @@ static inline void lib_MAC(Iss *iss, int md, int ms1, int ms2) {
             break;
     }
 }
-
-
-
-/*
-static inline void lib_FMMACCB(Iss *iss, int md, int ms1, int ms2) {
-    
-    int K = COL * 4;
-
-    flexfloat_desc_t desc_fp8  = (flexfloat_desc_t){4, 3}; // E4M3
-    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23}; 
-
-    int old_frm = setFFRoundingMode(iss, iss->csr.fcsr.frm);
-
-    for (int r = 0; r < ROW; r++){
-        for (int c = 0; c < COL; c++){
-
-            flexfloat_t ff_acc;
-            ff_acc.desc = desc_fp32;
-            flexfloat_set_bits(&ff_acc, 0x00000000);
-
-            for(int k = 0; k < K; k += 4){
-
-                uint8_t a0_bits = iss->quadrilatero.mregfile.mregs[ms1][r][k+0];
-                uint8_t a1_bits = iss->quadrilatero.mregfile.mregs[ms1][r][k+1];
-                uint8_t a2_bits = iss->quadrilatero.mregfile.mregs[ms1][r][k+2];
-                uint8_t a3_bits = iss->quadrilatero.mregfile.mregs[ms1][r][k+3];
-                                           
-                uint8_t b0_bits = iss->quadrilatero.mregfile.mregs[ms2][c][k+0];
-                uint8_t b1_bits = iss->quadrilatero.mregfile.mregs[ms2][c][k+1];
-                uint8_t b2_bits = iss->quadrilatero.mregfile.mregs[ms2][c][k+2];
-                uint8_t b3_bits = iss->quadrilatero.mregfile.mregs[ms2][c][k+3];
-
-                flexfloat_t ff_a0, ff_a1, ff_a2, ff_a3;
-                flexfloat_t ff_b0, ff_b1, ff_b2, ff_b3;
-
-                ff_a0.desc = desc_fp8; flexfloat_set_bits(&ff_a0, a0_bits);
-                ff_a1.desc = desc_fp8; flexfloat_set_bits(&ff_a1, a1_bits);
-                ff_a2.desc = desc_fp8; flexfloat_set_bits(&ff_a2, a2_bits);
-                ff_a3.desc = desc_fp8; flexfloat_set_bits(&ff_a3, a3_bits);
-
-                ff_b0.desc = desc_fp8; flexfloat_set_bits(&ff_b0, b0_bits);
-                ff_b1.desc = desc_fp8; flexfloat_set_bits(&ff_b1, b1_bits);
-                ff_b2.desc = desc_fp8; flexfloat_set_bits(&ff_b2, b2_bits);
-                ff_b3.desc = desc_fp8; flexfloat_set_bits(&ff_b3, b3_bits);
-
-                flexfloat_t ff_a0_32, ff_b0_32, ff_a1_32, ff_b1_32;
-                flexfloat_t ff_a2_32, ff_b2_32, ff_a3_32, ff_b3_32;
-
-                ff_a0_32.desc = desc_fp32; ff_a0_32.value = ff_a0.value;
-                ff_b0_32.desc = desc_fp32; ff_b0_32.value = ff_b0.value;
-                
-                ff_a1_32.desc = desc_fp32; ff_a1_32.value = ff_a1.value;
-                ff_b1_32.desc = desc_fp32; ff_b1_32.value = ff_b1.value;
-                
-                ff_a2_32.desc = desc_fp32; ff_a2_32.value = ff_a2.value;
-                ff_b2_32.desc = desc_fp32; ff_b2_32.value = ff_b2.value;
-                
-                ff_a3_32.desc = desc_fp32; ff_a3_32.value = ff_a3.value;
-                ff_b3_32.desc = desc_fp32; ff_b3_32.value = ff_b3.value;
-
-                feclearexcept(FE_ALL_EXCEPT);
-                ff_fma(&ff_acc, &ff_a0_32, &ff_b0_32, &ff_acc);
-                update_fflags_fenv(iss);
-
-                feclearexcept(FE_ALL_EXCEPT);
-                ff_fma(&ff_acc, &ff_a1_32, &ff_b1_32, &ff_acc);
-                update_fflags_fenv(iss);
-
-                feclearexcept(FE_ALL_EXCEPT);
-                ff_fma(&ff_acc, &ff_a2_32, &ff_b2_32, &ff_acc);
-                update_fflags_fenv(iss);
-
-                feclearexcept(FE_ALL_EXCEPT);
-                ff_fma(&ff_acc, &ff_a3_32, &ff_b3_32, &ff_acc);
-                update_fflags_fenv(iss);
-            }
-
-            uint32_t prev_md_bits = (uint32_t)((iss->quadrilatero.mregfile.maccregs[md][r][c*4+0] << 0)  |
-                                               (iss->quadrilatero.mregfile.maccregs[md][r][c*4+1] << 8)  |
-                                               (iss->quadrilatero.mregfile.maccregs[md][r][c*4+2] << 16) |
-                                               (iss->quadrilatero.mregfile.maccregs[md][r][c*4+3] << 24));
-
-            flexfloat_t ff_prev;
-            ff_prev.desc = desc_fp32;
-            flexfloat_set_bits(&ff_prev, prev_md_bits);
-
-            flexfloat_t ff_final;
-            ff_final.desc = desc_fp32;
-            
-            feclearexcept(FE_ALL_EXCEPT);
-            ff_add(&ff_final, &ff_acc, &ff_prev);
-            update_fflags_fenv(iss);
-
-            uint32_t final_bits = flexfloat_get_bits(&ff_final);
-
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+0] = (uint8_t)(final_bits & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+1] = (uint8_t)((final_bits >> 8) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+2] = (uint8_t)((final_bits >> 16) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);                            
-        }
-    }
-
-    restoreFFRoundingMode(old_frm);
-
-    printf("\n--- MATRIX FMMACCB (md=%d)(ms1=%d)(ms2=%d) ---\n", md, ms1, ms2);
-    for(int i = 0; i < ROW; i++){
-        printf("Row %d: ", i);
-        for(int w = 0; w < COL; w++){ 
-            printf("[%02x %02x %02x %02x] ", 
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+3],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+2],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+1],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+0]);
-        }
-        printf("\n");
-    }
-    printf("-----------------------------\n");
-}
-
-static inline void lib_FMMACCH(Iss *iss, int md, int ms1, int ms2) {
-    
-    int K = COL * 4;
-
-    flexfloat_desc_t desc_fp16 = (flexfloat_desc_t){5, 10};
-    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23}; 
-
-    int old_frm = setFFRoundingMode(iss, iss->csr.fcsr.frm);
-
-    for (int r = 0; r < ROW; r++){
-        for (int c = 0; c < COL; c++){
-
-            flexfloat_t ff_acc;
-            ff_acc.desc = desc_fp32;
-            flexfloat_set_bits(&ff_acc, 0x00000000);
-
-            for(int k = 0; k < K; k += 4){
-
-                uint16_t a0_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+0] << 0) |
-                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+1] << 8) );
-                                           
-                uint16_t a1_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+2] << 0) |
-                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+3] << 8) );
-
-                uint16_t b0_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+0] << 0) |
-                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+1] << 8) );
-                                           
-                uint16_t b1_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+2] << 0) |
-                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+3] << 8) );
-
-                flexfloat_t ff_a0, ff_a1, ff_b0, ff_b1;
-
-                ff_a0.desc = desc_fp16;
-                ff_a1.desc = desc_fp16;
-                ff_b0.desc = desc_fp16;
-                ff_b1.desc = desc_fp16;
-
-                flexfloat_set_bits(&ff_a0, a0_bits);
-                flexfloat_set_bits(&ff_a1, a1_bits);
-                flexfloat_set_bits(&ff_b0, b0_bits);
-                flexfloat_set_bits(&ff_b1, b1_bits);
-
-                flexfloat_t ff_a0_32, ff_b0_32, ff_a1_32, ff_b1_32;
-
-                ff_a0_32.desc = desc_fp32; ff_a0_32.value = ff_a0.value;
-                ff_b0_32.desc = desc_fp32; ff_b0_32.value = ff_b0.value;
-                ff_a1_32.desc = desc_fp32; ff_a1_32.value = ff_a1.value;
-                ff_b1_32.desc = desc_fp32; ff_b1_32.value = ff_b1.value;
-
-                feclearexcept(FE_ALL_EXCEPT);
-                ff_fma(&ff_acc, &ff_a0_32, &ff_b0_32, &ff_acc);
-                update_fflags_fenv(iss);
-
-                feclearexcept(FE_ALL_EXCEPT);
-                ff_fma(&ff_acc, &ff_a1_32, &ff_b1_32, &ff_acc);
-                update_fflags_fenv(iss);
-            }
-
-            uint32_t prev_md_bits = (uint32_t)((iss->quadrilatero.mregfile.maccregs[md][r][c*4+0] << 0)  |
-                                               (iss->quadrilatero.mregfile.maccregs[md][r][c*4+1] << 8)  |
-                                               (iss->quadrilatero.mregfile.maccregs[md][r][c*4+2] << 16) |
-                                               (iss->quadrilatero.mregfile.maccregs[md][r][c*4+3] << 24));
-
-            flexfloat_t ff_prev;
-            ff_prev.desc = desc_fp32;
-            flexfloat_set_bits(&ff_prev, prev_md_bits);
-
-            flexfloat_t ff_final;
-            ff_final.desc = desc_fp32;
-            
-            feclearexcept(FE_ALL_EXCEPT);
-            ff_add(&ff_final, &ff_acc, &ff_prev);
-            update_fflags_fenv(iss);
-
-            uint32_t final_bits = flexfloat_get_bits(&ff_final);
-
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+0] = (uint8_t)(final_bits & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+1] = (uint8_t)((final_bits >> 8) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+2] = (uint8_t)((final_bits >> 16) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);                            
-        }
-    }
-
-    restoreFFRoundingMode(old_frm);
-
-    printf("\n--- MATRIX FMMACCH (md=%d)(ms1=%d)(ms2=%d) ---\n", md, ms1, ms2);
-    for(int i = 0; i < ROW; i++){
-        printf("Row %d: ", i);
-        for(int w = 0; w < COL; w++){ 
-            printf("[%02x %02x %02x %02x] ", 
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+3],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+2],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+1],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+0]);
-        }
-        printf("\n");
-    }
-    printf("-----------------------------\n");
-}
-
-static inline void lib_FMMACCW(Iss *iss, int md, int ms1, int ms2) {
-    
-    int K = COL * 4;
-
-    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23}; 
-
-    int old_frm = setFFRoundingMode(iss, iss->csr.fcsr.frm);
-
-    for (int r = 0; r < ROW; r++){
-        for (int c = 0; c < COL; c++){
-
-            flexfloat_t ff_acc;
-            ff_acc.desc = desc_fp32;
-            flexfloat_set_bits(&ff_acc, 0x00000000);
-
-            for(int k = 0; k < K; k += 4){
-
-                uint32_t a0_bits = (uint32_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+0] << 0)  |
-                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+1] << 8)  |
-                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+2] << 16) |
-                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+3] << 24) );
-                                           
-                uint32_t b0_bits = (uint32_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+0] << 0)  |
-                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+1] << 8)  |
-                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+2] << 16) |
-                                               ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+3] << 24) );
-
-                flexfloat_t ff_a0, ff_b0;
-                
-                ff_a0.desc = desc_fp32;
-                ff_b0.desc = desc_fp32;
-
-                flexfloat_set_bits(&ff_a0, a0_bits);
-                flexfloat_set_bits(&ff_b0, b0_bits);
-
-                feclearexcept(FE_ALL_EXCEPT);
-                ff_fma(&ff_acc, &ff_a0, &ff_b0, &ff_acc);
-                update_fflags_fenv(iss);
-            }
-
-            uint32_t prev_md_bits = (uint32_t)((iss->quadrilatero.mregfile.maccregs[md][r][c*4+0] << 0)  |
-                                               (iss->quadrilatero.mregfile.maccregs[md][r][c*4+1] << 8)  |
-                                               (iss->quadrilatero.mregfile.maccregs[md][r][c*4+2] << 16) |
-                                               (iss->quadrilatero.mregfile.maccregs[md][r][c*4+3] << 24));
-
-            flexfloat_t ff_prev;
-            ff_prev.desc = desc_fp32;
-            flexfloat_set_bits(&ff_prev, prev_md_bits);
-
-            flexfloat_t ff_final;
-            ff_final.desc = desc_fp32;
-            
-            feclearexcept(FE_ALL_EXCEPT);
-            ff_add(&ff_final, &ff_acc, &ff_prev);
-            update_fflags_fenv(iss);
-
-            uint32_t final_bits = flexfloat_get_bits(&ff_final);
-
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+0] = (uint8_t)(final_bits & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+1] = (uint8_t)((final_bits >> 8) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+2] = (uint8_t)((final_bits >> 16) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);                            
-        }
-    }
-
-    restoreFFRoundingMode(old_frm);
-
-    // DEBUG
-    printf("\n--- MATRIX FMMACCW (md=%d)(ms1=%d)(ms2=%d) ---\n", md, ms1, ms2);
-    for(int i = 0; i < ROW; i++){
-        printf("Row %d: ", i);
-        for(int w = 0; w < COL; w++){ 
-            printf("[%02x %02x %02x %02x] ", 
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+3],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+2],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+1],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+0]);
-        }
-        printf("\n");
-    }
-    printf("-----------------------------\n");
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                                            MATRIX ALU
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-static inline void lib_MMAQAB(Iss *iss, int md, int ms1, int ms2) {
-    
-    int K = COL*4;
-
-    for (int r=0; r < ROW; r++){
-        for (int c=0; c < COL; c++){
-
-            int64_t accumulator = 0;
-
-            for(int k=0; k < K; k+=4){
-
-                int8_t a0 = (int8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+0];
-                int8_t a1 = (int8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+1];
-                int8_t a2 = (int8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+2];
-                int8_t a3 = (int8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+3];
-
-                int8_t b0 = (int8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+0];
-                int8_t b1 = (int8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+1];
-                int8_t b2 = (int8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+2];
-                int8_t b3 = (int8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+3];
-
-                accumulator += (int64_t)a0 * b0;
-                accumulator += (int64_t)a1 * b1;
-                accumulator += (int64_t)a2 * b2;
-                accumulator += (int64_t)a3 * b3;
-            }
-
-            int32_t prev_md = (int32_t)((iss->quadrilatero.mregfile.maccregs[md][r][c*4+0] << 0)  |
-                                        (iss->quadrilatero.mregfile.maccregs[md][r][c*4+1] << 8)  |
-                                        (iss->quadrilatero.mregfile.maccregs[md][r][c*4+2] << 16) |
-                                        (iss->quadrilatero.mregfile.maccregs[md][r][c*4+3] << 24));
-
-            int64_t final_val = accumulator + prev_md;
-
-            if (final_val > INT32_MAX) final_val = INT32_MAX;
-            if (final_val < INT32_MIN) final_val = INT32_MIN;
-
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+0] = (uint8_t)(final_val & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+1] = (uint8_t)((final_val >> 8) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+2] = (uint8_t)((final_val >> 16) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+3] = (uint8_t)((final_val >> 24) & 0xFF);                            
-
-        }
-    }
-
-    //DEBUG
-    printf("\n--- MATRIX ACC MMAQAB (md=%d)(ms1=%d)(ms2=%d) ---\n", md, ms1, ms2);
-    for(int i=0; i<ROW; i++){
-        printf("Row %d: ", i);
-        for(int w=0; w<COL; w++){ 
-            printf("[%02x %02x %02x %02x] ", 
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+3],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+2],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+1],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+0]);
-        }
-        printf("\n");
-    }
-    printf("-----------------------------\n");
-}
-
-static inline void lib_MMADAH(Iss *iss, int md, int ms1, int ms2) {
-    
-    int K = COL * 4;
-
-    for (int r = 0; r < ROW; r++){
-        for (int c = 0; c < COL; c++){
-
-            int64_t accumulator = 0;
-
-            for(int k = 0; k < K; k += 4){
-
-                int16_t a0 = (int16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+0] << 0) |
-                                        ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+1] << 8) );
-                                           
-                int16_t a1 = (int16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+2] << 0) |
-                                        ((uint8_t)iss->quadrilatero.mregfile.mregs[ms1][r][k+3] << 8) );
-
-                int16_t b0 = (int16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+0] << 0) |
-                                        ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+1] << 8) );
-                                           
-                int16_t b1 = (int16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+2] << 0) |
-                                        ((uint8_t)iss->quadrilatero.mregfile.mregs[ms2][c][k+3] << 8) );
-
-                accumulator += (int64_t)a0 * b0;
-                accumulator += (int64_t)a1 * b1;
-            }
-
-            int32_t prev_md = (int32_t)((iss->quadrilatero.mregfile.maccregs[md][r][c*4+0] << 0)  |
-                                        (iss->quadrilatero.mregfile.maccregs[md][r][c*4+1] << 8)  |
-                                        (iss->quadrilatero.mregfile.maccregs[md][r][c*4+2] << 16) |
-                                        (iss->quadrilatero.mregfile.maccregs[md][r][c*4+3] << 24));
-
-            int64_t final_val = accumulator + prev_md;
-
-            if (final_val > INT32_MAX) final_val = INT32_MAX;
-            if (final_val < INT32_MIN) final_val = INT32_MIN;
-
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+0] = (uint8_t)(final_val & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+1] = (uint8_t)((final_val >> 8) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+2] = (uint8_t)((final_val >> 16) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[md][r][c*4+3] = (uint8_t)((final_val >> 24) & 0xFF);                            
-
-        }
-    }
-
-    // DEBUG
-    printf("\n--- MATRIX ACC MMADAH (md=%d)(ms1=%d)(ms2=%d) ---\n", md, ms1, ms2);
-    for(int i = 0; i < ROW; i++){
-        printf("Row %d: ", i);
-        for(int w = 0; w < COL; w++){ 
-            printf("[%02x %02x %02x %02x] ", 
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+3],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+2],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+1],
-                iss->quadrilatero.mregfile.maccregs[md][i][w*4+0]);
-        }
-        printf("\n");
-    }
-    printf("-----------------------------\n");
-}
-
-
-*/
