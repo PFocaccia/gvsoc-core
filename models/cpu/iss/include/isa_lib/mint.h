@@ -428,9 +428,6 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
     uint64_t addr = rs1;
     uint64_t stride = rs2;   
 
-    if( iss->csr.matrix_dt_a.value == INT16 || iss->csr.matrix_dt_a.value == UINT16 || iss->csr.matrix_dt_a.value == FP16 || iss->csr.matrix_dt_a.value == BFP16)    stride *= 2;
-    if( iss->csr.matrix_dt_a.value == INT8 || iss->csr.matrix_dt_a.value == UINT8 || iss->csr.matrix_dt_a.value == FP8E4M3|| iss->csr.matrix_dt_a.value == FP8E5M2)  stride *= 4;
-
     int n_row = dim; 
     int n_col = dim;
     
@@ -476,7 +473,7 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
         iss->quadrilatero.mreg_block_set_ready(md, false, max_done, block);
     }
 
-    /*    
+    /* 
     // DEBUG
     printf("\n--- (mld.lhs.w)(md=%d) - Logical: %dx%d (but is trasposed)(stride=%d)(addr=%d)---\n", md, M, K, stride, addr);
     
@@ -520,10 +517,7 @@ static inline void lib_MLDR(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
 
     uint64_t addr = rs1;
     uint64_t stride = rs2;   
-
-    if( iss->csr.matrix_dt_a.value == INT16 || iss->csr.matrix_dt_a.value == UINT16 || iss->csr.matrix_dt_a.value == FP16 || iss->csr.matrix_dt_a.value == BFP16)    stride *= 2;
-    if( iss->csr.matrix_dt_a.value == INT8 || iss->csr.matrix_dt_a.value == UINT8 || iss->csr.matrix_dt_a.value == FP8E4M3|| iss->csr.matrix_dt_a.value == FP8E5M2)  stride *= 4;
-
+    
     int n_row = dim; 
     int n_col = dim;
     
