@@ -129,6 +129,13 @@ V_VXU = [
     UnsignedImm  (0, Range(25, 1)),
 ]
 
+V_VIU = [
+    OutVReg      (0, Range(7 , 5)),
+    InVReg       (1, Range(20, 5)),
+    SignedImm    (0, Range(15, 5)),
+    UnsignedImm  (0, Range(25, 1)),
+]
+
 VF_VFFU = [
     OutVRegF     (0, Range(7 , 5)),
     InVRegF      (1, Range(20, 5)),
@@ -252,8 +259,8 @@ Format_OPVFF = [ OutFReg    (0, Range(7 , 5)),
                  UnsignedImm(0, Range(25, 1)),
 ]
 Format_OPIVI = [ OutVReg     (0, Range(7 , 5)),
+                 InVReg      (1, Range(20, 5)),
                  SignedImm  (0, Range(15, 5)),
-                 InReg      (0, Range(20, 5)),
                  UnsignedImm(0, Range(25, 1)),
 ]
 Format_OPVLS = [ OutVReg     (0, Range(7 , 5)),
@@ -284,9 +291,22 @@ class Rv32v(IsaSubset):
 
     def __init__(self):
         super().__init__(name='v', instrs=[
-            Instr('vadd.vv'       ,   Format_OPV  ,    '000000 - ----- ----- 000 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
-            Instr('vadd.vi'       ,   Format_OPIVI,    '000000 - ----- ----- 011 ----- 1010111'),
-            Instr('vadd.vx'       ,   Format_OPV  ,    '000000 - ----- ----- 100 ----- 1010111'),
+            Instr('vadd.vv'       ,   V_VVU , '000000 - ----- ----- 000 ----- 1010111'),
+            Instr('vadd.vi'       ,   V_VIU , '000000 - ----- ----- 011 ----- 1010111'),
+            Instr('vadd.vx'       ,   V_VXU , '000000 - ----- ----- 100 ----- 1010111'),
+
+            Instr('vsll.vv'       ,   V_VVU , '100101 - ----- ----- 000 ----- 1010111'),
+            Instr('vsll.vi'       ,   V_VIU , '100101 - ----- ----- 011 ----- 1010111'),
+            Instr('vsll.vx'       ,   V_VXU , '100101 - ----- ----- 100 ----- 1010111'),
+
+            Instr('vsrl.vv'       ,   V_VVU , '101000 - ----- ----- 000 ----- 1010111'),
+            Instr('vsrl.vi'       ,   V_VIU , '101000 - ----- ----- 011 ----- 1010111'),
+            Instr('vsrl.vx'       ,   V_VXU , '101000 - ----- ----- 100 ----- 1010111'),
+
+            Instr('vsra.vv'       ,   V_VVU , '101001 - ----- ----- 000 ----- 1010111'),
+            Instr('vsra.vi'       ,   V_VIU , '101001 - ----- ----- 011 ----- 1010111'),
+            Instr('vsra.vx'       ,   V_VXU , '101001 - ----- ----- 100 ----- 1010111'),
+
 
             Instr('vsub.vv'       ,   Format_OPV  ,    '000010 - ----- ----- 000 ----- 1010111'),
             Instr('vsub.vx'       ,   Format_OPV  ,    '000010 - ----- ----- 100 ----- 1010111'),
@@ -294,40 +314,40 @@ class Rv32v(IsaSubset):
             Instr('vrsub.vi'      ,   Format_OPIVI,    '000011 - ----- ----- 011 ----- 1010111'),
             Instr('vrsub.vx'      ,   Format_OPV  ,    '000011 - ----- ----- 100 ----- 1010111'),
 
-            Instr('vand.vv'       ,   Format_OPV  ,    '001001 - ----- ----- 000 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vand.vv'       ,   Format_OPV  ,    '001001 - ----- ----- 000 ----- 1010111'),
             Instr('vand.vi'       ,   Format_OPIVI,    '001001 - ----- ----- 011 ----- 1010111'),
             Instr('vand.vx'       ,   Format_OPV  ,    '001001 - ----- ----- 100 ----- 1010111'),
 
-            Instr('vor.vv'        ,   Format_OPV  ,    '001010 - ----- ----- 000 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vor.vv'        ,   Format_OPV  ,    '001010 - ----- ----- 000 ----- 1010111'),
             Instr('vor.vi'        ,   Format_OPIVI,    '001010 - ----- ----- 011 ----- 1010111'),
             Instr('vor.vx'        ,   Format_OPV  ,    '001010 - ----- ----- 100 ----- 1010111'),
 
-            Instr('vxor.vv'       ,   Format_OPV  ,    '001011 - ----- ----- 000 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vxor.vv'       ,   Format_OPV  ,    '001011 - ----- ----- 000 ----- 1010111'),
             Instr('vxor.vi'       ,   Format_OPIVI,    '001011 - ----- ----- 011 ----- 1010111'),
             Instr('vxor.vx'       ,   Format_OPV  ,    '001011 - ----- ----- 100 ----- 1010111'),
 
-            Instr('vmin.vv'       ,   Format_OPV  ,    '000101 - ----- ----- 000 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vmin.vv'       ,   Format_OPV  ,    '000101 - ----- ----- 000 ----- 1010111'),
             Instr('vmin.vx'       ,   Format_OPV  ,    '000101 - ----- ----- 100 ----- 1010111'),
 
-            Instr('vminu.vv'      ,   Format_OPV  ,    '000100 - ----- ----- 000 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vminu.vv'      ,   Format_OPV  ,    '000100 - ----- ----- 000 ----- 1010111'),
             Instr('vminu.vx'      ,   Format_OPV  ,    '000100 - ----- ----- 100 ----- 1010111'),
 
-            Instr('vmax.vv'       ,   Format_OPV  ,    '000111 - ----- ----- 000 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vmax.vv'       ,   Format_OPV  ,    '000111 - ----- ----- 000 ----- 1010111'),
             Instr('vmax.vx'       ,   Format_OPV  ,    '000111 - ----- ----- 100 ----- 1010111'),
 
-            Instr('vmaxu.vv'      ,   Format_OPV  ,    '000110 - ----- ----- 000 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vmaxu.vv'      ,   Format_OPV  ,    '000110 - ----- ----- 000 ----- 1010111'),
             Instr('vmaxu.vx'      ,   Format_OPV  ,    '000110 - ----- ----- 100 ----- 1010111'),
 
-            Instr('vmul.vv'       ,   Format_OPV  ,    '100101 - ----- ----- 010 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vmul.vv'       ,   Format_OPV  ,    '100101 - ----- ----- 010 ----- 1010111'),
             Instr('vmul.vx'       ,   Format_OPV  ,    '100101 - ----- ----- 110 ----- 1010111'),
 
-            Instr('vmulh.vv'      ,   Format_OPV  ,    '100111 - ----- ----- 010 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vmulh.vv'      ,   Format_OPV  ,    '100111 - ----- ----- 010 ----- 1010111'),
             Instr('vmulh.vx'      ,   Format_OPV  ,    '100111 - ----- ----- 110 ----- 1010111'),
 
-            Instr('vmulhu.vv'     ,   Format_OPV  ,    '100100 - ----- ----- 010 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vmulhu.vv'     ,   Format_OPV  ,    '100100 - ----- ----- 010 ----- 1010111'),
             Instr('vmulhu.vx'     ,   Format_OPV  ,    '100100 - ----- ----- 110 ----- 1010111'),
 
-            Instr('vmulhsu.vv'    ,   Format_OPV  ,    '100110 - ----- ----- 010 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vmulhsu.vv'    ,   Format_OPV  ,    '100110 - ----- ----- 010 ----- 1010111'),
             Instr('vmulhsu.vx'    ,   Format_OPV  ,    '100110 - ----- ----- 110 ----- 1010111'),
 
             Instr('vmerge.vvm'    ,   Format_OPV  ,    '010111 0 ----- ----- 000 ----- 1010111'),
@@ -338,14 +358,25 @@ class Rv32v(IsaSubset):
             Instr('vmv.s.x'       ,   Format_OPV_0  ,    '010000 - 00000 ----- 110 ----- 1010111'),
             Instr('vmv.x.s'       ,   Format_OPV  ,    '010000 - ----- 00000 010 ----- 1010111'),
 
+            Instr('vwadd.vv'      ,   Format_OPV  ,    '110001 - ----- ----- 010 ----- 1010111'),
+            Instr('vwadd.vx'      ,   Format_OPV  ,    '110001 - ----- ----- 110 ----- 1010111'),
 
-            Instr('vwmul.vv'      ,   Format_OPV  ,    '111011 - ----- ----- 010 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vwaddu.vv'     ,   Format_OPV  ,    '110000 - ----- ----- 010 ----- 1010111'),
+            Instr('vwaddu.vx'     ,   Format_OPV  ,    '110000 - ----- ----- 110 ----- 1010111'),
+
+            Instr('vwsub.vv'      ,   Format_OPV  ,    '110011 - ----- ----- 010 ----- 1010111'),
+            Instr('vwsub.vx'      ,   Format_OPV  ,    '110011 - ----- ----- 110 ----- 1010111'),
+
+            Instr('vwsubu.vv'     ,   Format_OPV  ,    '110010 - ----- ----- 010 ----- 1010111'),
+            Instr('vwsubu.vx'     ,   Format_OPV  ,    '110010 - ----- ----- 110 ----- 1010111'),
+
+            Instr('vwmul.vv'      ,   Format_OPV  ,    '111011 - ----- ----- 010 ----- 1010111'),
             Instr('vwmul.vx'      ,   Format_OPV  ,    '111011 - ----- ----- 110 ----- 1010111'),
 
-            Instr('vwmulu.vv'     ,   Format_OPV  ,    '111000 - ----- ----- 010 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vwmulu.vv'     ,   Format_OPV  ,    '111000 - ----- ----- 010 ----- 1010111'),
             Instr('vwmulu.vx'     ,   Format_OPV  ,    '111000 - ----- ----- 110 ----- 1010111'),
 
-            Instr('vwmulsu.vv'    ,   Format_OPV  ,    '111010 - ----- ----- 010 ----- 1010111'),#inst[25] = VM , VM = 0 mask enable
+            Instr('vwmulsu.vv'    ,   Format_OPV  ,    '111010 - ----- ----- 010 ----- 1010111'),
             Instr('vwmulsu.vx'    ,   Format_OPV  ,    '111010 - ----- ----- 110 ----- 1010111'),
 
             Instr('vmacc.vv'      ,   Format_OPV  ,    '101101 - ----- ----- 010 ----- 1010111'),
@@ -366,7 +397,9 @@ class Rv32v(IsaSubset):
             Instr('vwmaccu.vv'    ,   Format_OPV  ,    '111100 - ----- ----- 010 ----- 1010111'),
             Instr('vwmaccu.vx'    ,   Format_OPV  ,    '111100 - ----- ----- 110 ----- 1010111'),
 
+            Instr('vwmaccus.vv'   ,   Format_OPV  ,    '111110 - ----- ----- 010 ----- 1010111'),
             Instr('vwmaccus.vx'   ,   Format_OPV  ,    '111110 - ----- ----- 110 ----- 1010111'),
+
 
             Instr('vwmaccsu.vv'   ,   Format_OPV  ,    '111111 - ----- ----- 010 ----- 1010111'),
             Instr('vwmaccsu.vx'   ,   Format_OPV  ,    '111111 - ----- ----- 110 ----- 1010111'),
@@ -390,17 +423,17 @@ class Rv32v(IsaSubset):
             Instr('vslide1up.vx'  ,   V_VXU  ,    '001110 - ----- ----- 110 ----- 1010111'),
             Instr('vslide1down.vx',   V_VXU  ,    '001111 - ----- ----- 110 ----- 1010111'),
 
-            Instr('vdiv.vv'       ,   Format_OPV  ,    '100001 - ----- ----- 010 ----- 1010111'),
-            Instr('vdiv.vx'       ,   Format_OPV  ,    '100001 - ----- ----- 110 ----- 1010111'),
+            Instr('vdiv.vv'       ,   V_VVU , '100001 - ----- ----- 010 ----- 1010111'),
+            Instr('vdiv.vx'       ,   V_VXU , '100001 - ----- ----- 110 ----- 1010111'),
 
-            Instr('vdivu.vv'      ,   Format_OPV  ,    '100000 - ----- ----- 010 ----- 1010111'),
-            Instr('vdivu.vx'      ,   Format_OPV  ,    '100000 - ----- ----- 110 ----- 1010111'),
+            Instr('vdivu.vv'      ,   V_VVU , '100000 - ----- ----- 010 ----- 1010111'),
+            Instr('vdivu.vx'      ,   V_VXU , '100000 - ----- ----- 110 ----- 1010111'),
 
-            Instr('vrem.vv'       ,   Format_OPV  ,    '100011 - ----- ----- 010 ----- 1010111'),
-            Instr('vrem.vx'       ,   Format_OPV  ,    '100011 - ----- ----- 110 ----- 1010111'),
+            Instr('vrem.vv'       ,   V_VVU , '100011 - ----- ----- 010 ----- 1010111'),
+            Instr('vrem.vx'       ,   V_VXU , '100011 - ----- ----- 110 ----- 1010111'),
 
-            Instr('vremu.vv'      ,   Format_OPV  ,    '100010 - ----- ----- 010 ----- 1010111'),
-            Instr('vremu.vx'      ,   Format_OPV  ,    '100010 - ----- ----- 110 ----- 1010111'),
+            Instr('vremu.vv'      ,   V_VVU , '100010 - ----- ----- 010 ----- 1010111'),
+            Instr('vremu.vx'      ,   V_VXU , '100010 - ----- ----- 110 ----- 1010111'),
 
 
 
@@ -594,4 +627,5 @@ class Rv32v(IsaSubset):
             Instr('vsetvl'  ,   Format_OPVL ,    '1000000 ----- ----- 111 ----- 1010111'),
 
             #Instr('csrr', Format_IU,  '------- ----- 00000 010 ----- 1110011', decode='csr_decode'),
+
         ])

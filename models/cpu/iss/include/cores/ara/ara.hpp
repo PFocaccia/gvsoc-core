@@ -58,7 +58,8 @@ private:
 
     Ara &ara;
     // Used for this block system traces
-    vp::Trace trace;
+    public:
+       vp::Trace trace;
     // Event for active state
     vp::Trace event_active;
     // Event for PC of instruction being processed
@@ -337,6 +338,7 @@ private:
     // from CVA6 anymore
     static constexpr int queue_size = 8;
 
+    public:
     vp::Trace trace;
     // Event for active state
     vp::Trace event_active;
