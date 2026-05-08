@@ -256,7 +256,9 @@ void IssWrapper::insn_commit(PendingInsn *pending_insn)
         {
             if ((insn->decoder_item->u.insn.args[i].u.reg.flags & ISS_DECODER_ARG_FLAG_FREG) != 0)
             {
-                this->iss.sequencer.scoreboard_freg_timestamp[insn->out_regs[i]] = 0;
+                #ifdef CONFIG_GVSOC_ISS_USE_SPATZ
+                    this->iss.sequencer.scoreboard_freg_timestamp[insn->out_regs[i]] = 0;
+                #endif
             }
             else
             {
