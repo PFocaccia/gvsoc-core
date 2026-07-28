@@ -216,13 +216,24 @@ void Ara::insn_end(PendingInsn *pending_insn)
     {
         if ((insn->decoder_item->u.insn.args[insn->nb_out_reg + i].u.reg.flags & ISS_DECODER_ARG_FLAG_VREG) != 0)
         {
-            this->scoreboard_in_use[insn->in_regs[i]]--;
-            // Cancel the register chaining if it was involved in this instruction, this will
-            // allow other instructions to use this register for chaining
-            if (this->scoreboard_chained[insn->in_regs[i]] == pending_insn)
-            {
-                this->scoreboard_chained[insn->in_regs[i]] = NULL;
+            // --- MODIFICA 4: Sblocco di 4 registri consecutivi per vs4r.v ---
+            int nb_consecutive = 1;
+            if (insn->desc && insn->desc->label && strstr(insn->desc->label, "vs4r.v") != nullptr && i == 1) {
+                nb_consecutive = 4;
             }
+
+            for (int k = 0; k < nb_consecutive; k++) {
+                int current_reg = insn->in_regs[i] + k;
+                this->scoreboard_in_use[current_reg]--;
+                
+                // Cancel the register chaining if it was involved in this instruction, this will
+                // allow other instructions to use this register for chaining
+                if (this->scoreboard_chained[current_reg] == pending_insn)
+                {
+                    this->scoreboard_chained[current_reg] = NULL;
+                }
+            }
+            // ----------------------------------------------------------------
         }
     }
 
@@ -282,13 +293,24 @@ void Ara::fsm_handler(vp::Block *__this, vp::ClockEvent *event)
             {
                 if ((insn->decoder_item->u.insn.args[insn->nb_out_reg + i].u.reg.flags & ISS_DECODER_ARG_FLAG_VREG) != 0)
                 {
-                    // The instruction can be chained if the register has already elements and is
-                    // not already chained with another instructions
-                    if (_this->scoreboard_committed[insn->in_regs[i]] != 0 && !_this->scoreboard_chained[insn->in_regs[i]])
-                    {
-                        pending_insn->chained = true;
-                        _this->scoreboard_chained[insn->in_regs[i]] = pending_insn;
+                    // --- MODIFICA 4: Controllo di chaining per registri multipli ---
+                    int nb_consecutive = 1;
+                    if (insn->desc && insn->desc->label && strstr(insn->desc->label, "vs4r.v") != nullptr && i == 1) {
+                        nb_consecutive = 4;
                     }
+
+                    for (int k = 0; k < nb_consecutive; k++) {
+                        int current_reg = insn->in_regs[i] + k;
+                        
+                        // The instruction can be chained if the register has already elements and is
+                        // not already chained with another instructions
+                        if (_this->scoreboard_committed[current_reg] != 0 && !_this->scoreboard_chained[current_reg])
+                        {
+                            pending_insn->chained = true;
+                            _this->scoreboard_chained[current_reg] = pending_insn;
+                        }
+                    }
+                    // ---------------------------------------------------------------
                 }
             }
 
@@ -298,15 +320,27 @@ void Ara::fsm_handler(vp::Block *__this, vp::ClockEvent *event)
             {
                 if ((insn->decoder_item->u.insn.args[insn->nb_out_reg + i].u.reg.flags & ISS_DECODER_ARG_FLAG_VREG) != 0)
                 {
-                    // This register can stall the instruction only if it not chained to it
-                    if (_this->scoreboard_chained[insn->in_regs[i]] != pending_insn)
-                    {
-                        if (_this->scoreboard_valid_ts[insn->in_regs[i]] > _this->iss.top.clock.get_cycles())
+                    // --- MODIFICA 4: Controllo stallo su tutti i 4 registri consecutivi ---
+                    int nb_consecutive = 1;
+                    if (insn->desc && insn->desc->label && strstr(insn->desc->label, "vs4r.v") != nullptr && i == 1) {
+                        nb_consecutive = 4;
+                    }
+
+                    for (int k = 0; k < nb_consecutive; k++) {
+                        int current_reg = insn->in_regs[i] + k;
+
+                        // This register can stall the instruction only if it not chained to it
+                        if (_this->scoreboard_chained[current_reg] != pending_insn)
                         {
-                            stalled = true;
-                            break;
+                            if (_this->scoreboard_valid_ts[current_reg] > _this->iss.top.clock.get_cycles())
+                            {
+                                stalled = true;
+                                break;
+                            }
                         }
                     }
+                    if (stalled) break;
+                    // ----------------------------------------------------------------------
                 }
             }
 
@@ -341,7 +375,7 @@ void Ara::fsm_handler(vp::Block *__this, vp::ClockEvent *event)
                     {
                         if (_this->scoreboard_in_use[insn->out_regs[i]])
                         {
-          		            stalled = true;
+                            stalled = true;
                             break;
                         }
                     }
@@ -391,7 +425,17 @@ void Ara::fsm_handler(vp::Block *__this, vp::ClockEvent *event)
                         {
                             if ((insn->decoder_item->u.insn.args[insn->nb_out_reg + i].u.reg.flags & ISS_DECODER_ARG_FLAG_VREG) != 0)
                             {
-                                _this->scoreboard_in_use[insn->in_regs[i]]++;
+                                // --- MODIFICA 4: Segna in_use tutti e 4 i registri per vs4r.v ---
+                                int nb_consecutive = 1;
+                                if (insn->desc && insn->desc->label && strstr(insn->desc->label, "vs4r.v") != nullptr && i == 1) {
+                                    nb_consecutive = 4;
+                                }
+
+                                for (int k = 0; k < nb_consecutive; k++) {
+                                    int current_reg = insn->in_regs[i] + k;
+                                    _this->scoreboard_in_use[current_reg]++;
+                                }
+                                // ----------------------------------------------------------------
                             }
                         }
 

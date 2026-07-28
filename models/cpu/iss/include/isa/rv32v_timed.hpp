@@ -2107,7 +2107,7 @@ static inline iss_reg_t vs2r_v_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc)
 
 static inline iss_reg_t vs4r_v_exec(Iss *iss, iss_insn_t *insn, iss_reg_t pc)
 {
-    abort();
+    // L'istruzione è gestita dal blocco VLSU in memoria; rimuoviamo abort()
     return iss_insn_next(iss, insn, pc);
 }
 

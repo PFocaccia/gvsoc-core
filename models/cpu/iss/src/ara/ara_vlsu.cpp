@@ -76,6 +76,10 @@ void AraVlsu::isa_init()
     {
         insn->u.insn.block_handler = (void *)&AraVlsu::handle_insn_store;
     }
+    for (iss_decoder_item_t *insn: *this->ara.iss.decode.get_insns_from_tag("vstore_multi"))
+    {
+        insn->u.insn.block_handler = (void *)&AraVlsu::handle_insn_store_multi;
+    }
 }
 
 void AraVlsu::enqueue_insn(PendingInsn *pending_insn)
@@ -123,6 +127,32 @@ void AraVlsu::handle_insn_store(AraVlsu *_this, iss_insn_t *insn)
     _this->pending_is_write = true;
     int elem_size = insn->uim[1] >= 5 ? 1 << (insn->uim[1] - 4) : 1 << 0;
     _this->pending_size = (_this->ara.iss.csr.vl.value - _this->ara.iss.csr.vstart.value) * elem_size;
+}
+
+void AraVlsu::handle_insn_store_multi(AraVlsu *_this, iss_insn_t *insn)
+{
+    int nb_regs = 4; // vs4r.v utilizza 4 registri
+    unsigned int vlenb = _this->ara.iss.csr.vlenb.value;
+
+    // L'input del registro sorgente è solitamente in_regs[1] per le store
+    _this->pending_vreg = insn->in_regs[1]; 
+    _this->pending_velem = velem_get(&_this->ara.iss, _this->pending_vreg, 0, 1, 1);
+    
+    _this->pending_addr = _this->insns[_this->insn_first_waiting].insn->reg;
+    _this->pending_is_write = true;
+    
+    // Dimensione totale del trasferimento
+    _this->pending_size = vlenb * nb_regs;
+    
+    _this->strided = false;
+    _this->reg_indexed = -1;
+    _this->elem_size = 1;
+    _this->inst_elem_size = 1;
+    _this->pending_elem = 0;
+    
+    // Setup per il tracciamento dei salti di registro
+    _this->pending_regs_count = nb_regs;
+    _this->current_reg_offset = 0;
 }
 
 void AraVlsu::data_grant(vp::Block *__this, vp::IoReq *req)
@@ -203,13 +233,32 @@ void AraVlsu::fsm_handler(vp::Block *__this, vp::ClockEvent *event)
     if (_this->pending_size && _this->free_bursts.size() != 0 && !_this->stalled)
     {
         AraVlsuPendingInsn &slot = _this->insns[_this->insn_first_waiting];
+        
+        // --- MODIFICA 3.c: Gestione salto di registro per istruzioni multi-registro ---
+        unsigned int vlenb = _this->ara.iss.csr.vlenb.value;
+
+        // Se abbiamo esaurito il registro corrente ma ci sono altri registri da inviare
+        if (_this->pending_regs_count > 1 && _this->current_reg_offset >= vlenb) {
+            _this->pending_vreg++;
+            _this->pending_velem = velem_get(&_this->ara.iss, _this->pending_vreg, 0, 1, 1);
+            _this->current_reg_offset = 0;
+            _this->pending_regs_count--;
+        }
+
         uint64_t size = std::min((iss_addr_t)_this->ara.nb_lanes / 2 * 8, _this->pending_size);
+
+        // Limita il size affinché non legga oltre la fine del registro vettoriale corrente
+        if (_this->pending_regs_count > 1) {
+            size = std::min(size, (uint64_t)(vlenb - _this->current_reg_offset));
+        }
+        // ------------------------------------------------------------------------------
+
         _this->trace.msg(vp::Trace::LEVEL_TRACE,
             "Sending request (addr: 0x%lx, pending_size: 0x%lx, is_write: %d)\n",
             _this->pending_addr, _this->pending_size, _this->pending_is_write);
 
         _this->event_addr.event((uint8_t *)&_this->pending_addr);
-        _this->event_size.event((uint8_t *)&_this->pending_size);
+        _this->event_size.event((uint8_t *)&_this->pending_size); // NOTA: questo nel codice originale è pending_size, anche se di solito si invia 'size'. Lasciato come nell'originale.
         _this->event_is_write.event((uint8_t *)&_this->pending_is_write);
 
         vp::IoReq *req = _this->free_bursts.front();
@@ -251,6 +300,12 @@ void AraVlsu::fsm_handler(vp::Block *__this, vp::ClockEvent *event)
         _this->pending_addr += size;
         _this->pending_size -= size;
         _this->pending_velem += size;
+        
+        // --- MODIFICA 3.c (continuazione) ---
+        if (_this->pending_regs_count > 1) {
+            _this->current_reg_offset += size;
+        }
+        // ------------------------------------
 
         // Switch to next instruction once all burst have been sent
         if (_this->pending_size == 0)

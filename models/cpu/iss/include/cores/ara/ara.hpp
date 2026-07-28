@@ -123,6 +123,8 @@ private:
     // initialize the FSM for a write burst
     static void handle_insn_store_indexed(AraVlsu *vlsu, iss_insn_t *insn);
 
+    static void handle_insn_store_multi(AraVlsu *vlsu, iss_insn_t *insn);
+
     void handle_access(iss_insn_t *insn, bool is_write, int reg, bool do_stride=false, iss_reg_t stride=0, int reg_indexed=-1);
 
     // Number of instruction that can be enqueued at the same time
@@ -185,6 +187,10 @@ private:
     int pending_elem;
     int inst_elem_size;
     int width;
+
+    int pending_regs_count;
+    int current_reg_offset;
+
 };
 
 #else

@@ -138,7 +138,7 @@ class Rv32m(IsaSubset):
     def __init__(self):
         super().__init__(name='M', instrs=[
 
-            Instr('mld.lhs'  ,   Format_OPLOAD , '0000 000- ---- ---- ---- -000 0000 1011'),
+            Instr('mld.lhs'  ,   Format_OPLOAD , '0001 000- ---- ---- ---- -000 0000 1011'),
             Instr('mld.rhs'  ,   Format_OPLOAD , '0000 010- ---- ---- ---- -000 0000 1011'),
             Instr('mst'      ,   Format_OPSTORE, '0000 100- ---- ---- ---- -000 0000 1011'),
 
