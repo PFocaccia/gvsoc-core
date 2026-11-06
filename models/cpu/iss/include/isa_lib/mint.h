@@ -37,7 +37,7 @@ static inline void lib_MCFGK(Iss *iss, int rd, uint64_t requested_k) {
     if( iss->csr.matrix_dt_a.value == INT8 || iss->csr.matrix_dt_a.value == UINT8 || iss->csr.matrix_dt_a.value == FP8E4M3|| iss->csr.matrix_dt_a.value == FP8E5M2)  max_k *= 4;
 
     uint64_t granted_k = (requested_k < max_k) ? requested_k : max_k;
-    
+
     iss->csr.matrix_k.value = granted_k;
     iss->regfile.set_reg(rd, granted_k);
 
@@ -45,13 +45,13 @@ static inline void lib_MCFGK(Iss *iss, int rd, uint64_t requested_k) {
 }
 
 static inline void lib_MCFGM(Iss *iss, int rd, uint64_t requested_m, uint8_t imm2) {
-    
+
     iss->csr.matrix_rmul.value = imm2 + 1;
 
-    uint64_t max_m = (RLEN/32)*iss->csr.matrix_rmul.value; 
-    
+    uint64_t max_m = (RLEN/32)*iss->csr.matrix_rmul.value;
+
     uint64_t granted_m = (requested_m < max_m) ? requested_m : max_m;
-    
+
     iss->csr.matrix_m.value = granted_m;
 
     iss->regfile.set_reg(rd, granted_m);
@@ -60,23 +60,23 @@ static inline void lib_MCFGM(Iss *iss, int rd, uint64_t requested_m, uint8_t imm
 }
 
 static inline void lib_MCFGN(Iss *iss, int rd, uint64_t requested_n, uint8_t imm2) {
-    
+
     iss->csr.matrix_cmul.value = imm2 + 1;
 
     uint64_t max_n = (RLEN/32)*iss->csr.matrix_cmul.value;;
 
     uint64_t granted_n = (requested_n < max_n) ? requested_n : max_n;
-    
+
     iss->csr.matrix_n.value = granted_n;
-    
+
     iss->regfile.set_reg(rd, granted_n);
-    
+
     //printf("MCFGN: N set to %lu (Requested: %lu) and CMUL to %lu\n", granted_n, requested_n, iss->csr.matrix_cmul.value);
 }
 
 
 static inline void lib_MCFGDT(Iss *iss, uint8_t immC , uint8_t immA, uint8_t immB) {
-    
+
     switch (immA) {
         case INT32:     iss->csr.matrix_dt_a.value = immA;  break;
         case UINT32:    iss->csr.matrix_dt_a.value = immA;  break;
@@ -84,15 +84,15 @@ static inline void lib_MCFGDT(Iss *iss, uint8_t immC , uint8_t immA, uint8_t imm
         case FP16:      iss->csr.matrix_dt_a.value = immA;  break;
         case BFP16:     iss->csr.matrix_dt_a.value = immA;  break;
         case INT16:     iss->csr.matrix_dt_a.value = immA;  break;
-        case UINT16:    iss->csr.matrix_dt_a.value = immA;  break;    
+        case UINT16:    iss->csr.matrix_dt_a.value = immA;  break;
         case FP8E4M3:   iss->csr.matrix_dt_a.value = immA;  break;
         case FP8E5M2:   iss->csr.matrix_dt_a.value = immA;  break;
-        case INT8:      iss->csr.matrix_dt_a.value = immA;  break; 
-        case UINT8:     iss->csr.matrix_dt_a.value = immA;  break;   
+        case INT8:      iss->csr.matrix_dt_a.value = immA;  break;
+        case UINT8:     iss->csr.matrix_dt_a.value = immA;  break;
 
         default:    printf("MCFG_DT: value %d is not correct for A matrix\n", immA);  break;
     }
-    
+
     switch (immB) {
         case INT32:     iss->csr.matrix_dt_b.value = immB;  break;
         case UINT32:    iss->csr.matrix_dt_b.value = immB;  break;
@@ -100,7 +100,7 @@ static inline void lib_MCFGDT(Iss *iss, uint8_t immC , uint8_t immA, uint8_t imm
         case FP16:      iss->csr.matrix_dt_b.value = immB;  break;
         case BFP16:     iss->csr.matrix_dt_b.value = immB;  break;
         case INT16:     iss->csr.matrix_dt_b.value = immB;  break;
-        case UINT16:    iss->csr.matrix_dt_b.value = immB;  break;    
+        case UINT16:    iss->csr.matrix_dt_b.value = immB;  break;
         case FP8E4M3:   iss->csr.matrix_dt_b.value = immB;  break;
         case FP8E5M2:   iss->csr.matrix_dt_b.value = immB;  break;
         case INT8:      iss->csr.matrix_dt_b.value = immB;  break;
@@ -116,7 +116,7 @@ static inline void lib_MCFGDT(Iss *iss, uint8_t immC , uint8_t immA, uint8_t imm
         case FP16:      iss->csr.matrix_dt_c.value = immC;  break;
         case BFP16:     iss->csr.matrix_dt_c.value = immC;  break;
         case INT16:     iss->csr.matrix_dt_c.value = immC;  break;
-        case UINT16:    iss->csr.matrix_dt_c.value = immC;  break;    
+        case UINT16:    iss->csr.matrix_dt_c.value = immC;  break;
         case FP8E4M3:   iss->csr.matrix_dt_c.value = immC;  break;
         case FP8E5M2:   iss->csr.matrix_dt_c.value = immC;  break;
         case INT8:      iss->csr.matrix_dt_c.value = immC;  break;
@@ -135,7 +135,7 @@ static inline void lib_MCFGDT(Iss *iss, uint8_t immC , uint8_t immA, uint8_t imm
 
 
 static inline void lib_MZEROM (Iss *iss, int md){
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
 
@@ -153,9 +153,9 @@ static inline void lib_MZEROM (Iss *iss, int md){
 
     for(int i=0; i<rmul; i++){
         for(int j=0; j<cmul; j++){
-            
+
             int nreg = md + (cmul * i) + j;
-            
+
             for(int x=0; x<dim; x++){
                 for(int z=0; z<(dim*4); z++){
                     iss->quadrilatero.mregfile.mregs[nreg][x][z] = 0;
@@ -167,7 +167,7 @@ static inline void lib_MZEROM (Iss *iss, int md){
 }
 
 static inline void lib_MZEROA (Iss *iss, int md){
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
 
@@ -185,9 +185,9 @@ static inline void lib_MZEROA (Iss *iss, int md){
 
     for(int i=0; i<rmul; i++){
         for(int j=0; j<cmul; j++){
-            
+
             int nreg = md + (cmul * i) + j;
-            
+
             for(int x=0; x<dim; x++){
                 for(int z=0; z<(dim*4); z++){
                     iss->quadrilatero.mregfile.maccregs[nreg][x][z] = 0;
@@ -195,7 +195,7 @@ static inline void lib_MZEROA (Iss *iss, int md){
             }
         }
     }
- 
+
 
 }
 
@@ -205,7 +205,7 @@ static inline void lib_MZEROA (Iss *iss, int md){
 
 
 static inline void lib_MOVMM (Iss *iss, int md, int ms){
-   
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
 
@@ -228,7 +228,7 @@ static inline void lib_MOVMM (Iss *iss, int md, int ms){
 
     for(int i=0; i<rmul; i++){
         for(int j=0; j<cmul; j++){
-            
+
             int nregd = md + (cmul * i) + j;
             int nregs = ms + (cmul * i) + j;
 
@@ -243,7 +243,7 @@ static inline void lib_MOVMM (Iss *iss, int md, int ms){
 }
 
 static inline void lib_MOVAM (Iss *iss, int md, int ms){
-   
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
 
@@ -266,7 +266,7 @@ static inline void lib_MOVAM (Iss *iss, int md, int ms){
 
     for(int i=0; i<rmul; i++){
         for(int j=0; j<cmul; j++){
-            
+
             int nregd = md + (cmul * i) + j;
             int nregs = ms + (cmul * i) + j;
 
@@ -281,7 +281,7 @@ static inline void lib_MOVAM (Iss *iss, int md, int ms){
 }
 
 static inline void lib_MOVMA (Iss *iss, int md, int ms){
-   
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
 
@@ -304,7 +304,7 @@ static inline void lib_MOVMA (Iss *iss, int md, int ms){
 
     for(int i=0; i<rmul; i++){
         for(int j=0; j<cmul; j++){
-            
+
             int nregd = md + (cmul * i) + j;
             int nregs = ms + (cmul * i) + j;
 
@@ -318,7 +318,7 @@ static inline void lib_MOVMA (Iss *iss, int md, int ms){
 }
 
 static inline void lib_MOVAA (Iss *iss, int md, int ms){
-   
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
 
@@ -341,7 +341,7 @@ static inline void lib_MOVAA (Iss *iss, int md, int ms){
 
     for(int i=0; i<rmul; i++){
         for(int j=0; j<cmul; j++){
-            
+
             int nregd = md + (cmul * i) + j;
             int nregs = ms + (cmul * i) + j;
 
@@ -410,12 +410,12 @@ inline void Mlsu::handle_pending_io_access(Iss *iss)
 }
 
 static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
-    if( iss->csr.matrix_dt_a.value == INT16 || iss->csr.matrix_dt_a.value == UINT16 || iss->csr.matrix_dt_a.value == FP16 || iss->csr.matrix_dt_a.value == BFP16)  K = (K+1) / 2;    
+
+    if( iss->csr.matrix_dt_a.value == INT16 || iss->csr.matrix_dt_a.value == UINT16 || iss->csr.matrix_dt_a.value == FP16 || iss->csr.matrix_dt_a.value == BFP16)  K = (K+1) / 2;
     if( iss->csr.matrix_dt_a.value == INT8 || iss->csr.matrix_dt_a.value == UINT8 || iss->csr.matrix_dt_a.value == FP8E4M3|| iss->csr.matrix_dt_a.value == FP8E5M2)K = (K+3) / 4;
 
     int dim = RLEN/32;
@@ -426,37 +426,37 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
     }
 
     uint64_t addr = rs1;
-    uint64_t stride = rs2;   
+    uint64_t stride = rs2;
 
-    int n_row = dim; 
+    int n_row = dim;
     int n_col = dim;
-    
-    int tiles_per_row = (M + n_col - 1) / n_col; 
-    int tiles_per_col = (K + n_row - 1) / n_row; 
- 
+
+    int tiles_per_row = (M + n_col - 1) / n_col;
+    int tiles_per_col = (K + n_row - 1) / n_row;
+
     int tot_reg = tiles_per_row * tiles_per_col;
 
-    if (md + tot_reg > ISS_NB_MREGS) {             
+    if (md + tot_reg > ISS_NB_MREGS) {
         printf("(mld.lhs.w) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     int64_t max_done = -1;
 
-    for(int k = 0; k < K; k++) {     
-        
+    for(int k = 0; k < K; k++) {
+
         uint64_t current_row_addr = addr + (k * stride);
-        
-        for(int m = 0; m < M; m += 4) { 
-            
+
+        for(int m = 0; m < M; m += 4) {
+
             uint64_t elem_addr = current_row_addr + (m * 4);
-            
-            int rowT = k / n_row;  
-            int colT = m / n_col;  
+
+            int rowT = k / n_row;
+            int colT = m / n_col;
             int mdT = md + (rowT * tiles_per_row) + colT;
 
-            int row = k % n_row;           
-            int col = (m % n_col) * 4;       
+            int row = k % n_row;
+            int col = (m % n_col) * 4;
 
             int remaining = M - m;
             int bytes = remaining >= 4 ? 16 : remaining * 4;
@@ -473,19 +473,19 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
         iss->quadrilatero.mreg_block_set_ready(md, false, max_done, block);
     }
 
-    /* 
+    /*
     // DEBUG
     printf("\n--- (mld.lhs.w)(md=%d) - Logical: %dx%d (but is trasposed)(stride=%d)(addr=%d)---\n", md, M, K, stride, addr);
-    
+
     for (int r = md; r < md + tot_reg ; r++) {
-        
+
         printf("Physical Register m%d:\n", r);
 
-        for(int i = 0; i < dim; i++) { 
+        for(int i = 0; i < dim; i++) {
             printf("  Row %d: ", i);
-            
-            for(int w = 0; w < dim; w++) { 
-                printf("[%02x %02x %02x %02x] ", 
+
+            for(int w = 0; w < dim; w++) {
+                printf("[%02x %02x %02x %02x] ",
                     iss->quadrilatero.mregfile.mregs[r][i][w*4+0],
                     iss->quadrilatero.mregfile.mregs[r][i][w*4+1],
                     iss->quadrilatero.mregfile.mregs[r][i][w*4+2],
@@ -500,12 +500,12 @@ static inline void lib_MLDL(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
 
 
 static inline void lib_MLDR(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
-    
+
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
     int K = iss->csr.matrix_k.value;
 
-    if( iss->csr.matrix_dt_a.value == INT16 || iss->csr.matrix_dt_a.value == UINT16 || iss->csr.matrix_dt_a.value == FP16 || iss->csr.matrix_dt_a.value == BFP16)  K = (K+1) / 2;    
+    if( iss->csr.matrix_dt_a.value == INT16 || iss->csr.matrix_dt_a.value == UINT16 || iss->csr.matrix_dt_a.value == FP16 || iss->csr.matrix_dt_a.value == BFP16)  K = (K+1) / 2;
     if( iss->csr.matrix_dt_a.value == INT8 || iss->csr.matrix_dt_a.value == UINT8 || iss->csr.matrix_dt_a.value == FP8E4M3|| iss->csr.matrix_dt_a.value == FP8E5M2)K = (K+3) / 4;
 
     int dim = RLEN/32;
@@ -516,37 +516,37 @@ static inline void lib_MLDR(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
     }
 
     uint64_t addr = rs1;
-    uint64_t stride = rs2;   
-    
-    int n_row = dim; 
+    uint64_t stride = rs2;
+
+    int n_row = dim;
     int n_col = dim;
-    
-    int tiles_per_row = (N + n_col - 1) / n_col; 
-    int tiles_per_col = (K + n_row - 1) / n_row; 
+
+    int tiles_per_row = (N + n_col - 1) / n_col;
+    int tiles_per_col = (K + n_row - 1) / n_row;
 
     int tot_reg = tiles_per_row * tiles_per_col;
 
-    if (md + tot_reg > ISS_NB_MREGS) {             
+    if (md + tot_reg > ISS_NB_MREGS) {
         printf("(mld.rhs.w) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     int64_t max_done = -1;
 
-    for(int k = 0; k < K; k++) {     
-        
+    for(int k = 0; k < K; k++) {
+
         uint64_t current_row_addr = addr + (k * stride);
-        
-        for(int n = 0; n < N; n += 4) { 
-            
+
+        for(int n = 0; n < N; n += 4) {
+
             uint64_t elem_addr = current_row_addr + (n * 4);
-            
-            int rowT = k / n_row;  
-            int colT = n / n_col;  
+
+            int rowT = k / n_row;
+            int colT = n / n_col;
             int mdT = md + (rowT * tiles_per_row) + colT;
 
-            int row = k % n_row;           
-            int col = (n % n_col) * 4;       
+            int row = k % n_row;
+            int col = (n % n_col) * 4;
 
             int remaining = N - n;
             int bytes = remaining >= 4 ? 16 : remaining * 4;
@@ -565,17 +565,17 @@ static inline void lib_MLDR(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
 
     /*
     // DEBUG
-    printf("\n--- (mld.rhs.w)(md=%d) - Logical: %dx%d ---\n", md, K, N);
-    
+    printf("\n--- (mld.rhs.w)(md=%d) - Logical: %dx%d(stride=%d)(addr=%d)---\n", md, K, N, stride, addr);
+
     for (int r = md; r < md + tot_reg ; r++) {
-        
+
         printf("Physical Register m%d:\n", r);
 
-        for(int i = 0; i < dim; i++) { 
+        for(int i = 0; i < dim; i++) {
             printf("  Row %d: ", i);
-            
-            for(int w = 0; w < dim; w++) { 
-                printf("[%02x %02x %02x %02x] ", 
+
+            for(int w = 0; w < dim; w++) {
+                printf("[%02x %02x %02x %02x] ",
                     iss->quadrilatero.mregfile.mregs[r][i][w*4+0],
                     iss->quadrilatero.mregfile.mregs[r][i][w*4+1],
                     iss->quadrilatero.mregfile.mregs[r][i][w*4+2],
@@ -590,9 +590,9 @@ static inline void lib_MLDR(Iss *iss, int md, uint64_t rs1, uint64_t rs2) {
 
 
 static inline void lib_MST (Iss *iss, int ms, iss_reg_t rs1, iss_reg_t rs2){
-    
+
     uint64_t add = rs1;
-    uint64_t stride = rs2;    
+    uint64_t stride = rs2;
 
     //printf("Stride: %d  Addr: %d\n", stride, add);
 
@@ -608,17 +608,17 @@ static inline void lib_MST (Iss *iss, int ms, iss_reg_t rs1, iss_reg_t rs2){
         return;
     }
 
-    int n_row = dim; 
+    int n_row = dim;
     int n_col = dim;
-    
-    int tiles_per_row = (N + n_col - 1) / n_col; 
-    int tiles_per_col = (M + n_row - 1) / n_row; 
+
+    int tiles_per_row = (N + n_col - 1) / n_col;
+    int tiles_per_col = (M + n_row - 1) / n_row;
 
     int tot_reg = tiles_per_row * tiles_per_col;
 
-    if (ms + tot_reg > ISS_NB_MREGS) {             
+    if (ms + tot_reg > ISS_NB_MREGS) {
         printf("(mstore) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms);
-        return; 
+        return;
     }
 
     for(int m=0; m<M; m++){
@@ -627,12 +627,12 @@ static inline void lib_MST (Iss *iss, int ms, iss_reg_t rs1, iss_reg_t rs2){
 
         for(int n=0; n<N; n += 4){
 
-            int rowT = m / n_row;  
-            int colT = n / n_col;  
+            int rowT = m / n_row;
+            int colT = n / n_col;
             int msT = ms + (rowT * tiles_per_row) + colT;
 
-            int row = m % n_row;           
-            int col = (n % n_col) * 4;       
+            int row = m % n_row;
+            int col = (n % n_col) * 4;
 
             int remaining = N - n;
             int bytes = remaining >= 4 ? 16 : remaining * 4;
@@ -640,7 +640,37 @@ static inline void lib_MST (Iss *iss, int ms, iss_reg_t rs1, iss_reg_t rs2){
             iss->quadrilatero.mlsu.enqueue_store(current_row_addr + (n * 4), bytes, src);
         }
     }
-    
+
+    /*
+    // DEBUG
+        printf("\n--- (mstore)(ms=%d) - Logical: %dx%d (stride=%llu)(destination addr=0x%llx) ---\n",
+            ms, M, N,
+            (unsigned long long)stride,
+            (unsigned long long)add);
+
+        for (int r = ms; r < ms + tot_reg; r++) {
+
+            printf("Physical Register m%d:\n", r);
+
+            for (int i = 0; i < dim; i++) {
+
+                printf("  Row %d: ", i);
+
+                for (int w = 0; w < dim; w++) {
+
+                    printf("[%02x %02x %02x %02x] ",
+                        iss->quadrilatero.mregfile.mregs[r][i][w*4+0],
+                        iss->quadrilatero.mregfile.mregs[r][i][w*4+1],
+                        iss->quadrilatero.mregfile.mregs[r][i][w*4+2],
+                        iss->quadrilatero.mregfile.mregs[r][i][w*4+3]);
+                }
+
+                printf("\n");
+            }
+        }
+
+        printf("--------------------------------------------------\n");
+        */
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -648,13 +678,13 @@ static inline void lib_MST (Iss *iss, int ms, iss_reg_t rs1, iss_reg_t rs2){
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static inline void lib_MACI32(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
+
     if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
         printf("(mac.i32) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
         return;
@@ -662,55 +692,55 @@ static inline void lib_MACI32(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = (K + dim - 1) / dim; 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = (K + dim - 1) / dim;
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = (K + dim - 1) / dim; 
+    int tiles_per_row_B = (K + dim - 1) / dim;
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
-    
+
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
 
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.i32) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
 
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.i32) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
 
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.i32) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     for(int m=0; m<M; m++){
         for(int n=0; n<N; n++){
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
             int row = m % dim;
             int col = n % dim;
-        
+
             int64_t accumulator = 0;
 
             for(int k = 0; k < K; k++){
-                
+
                 int colA = k / dim;
                 int rowA = k % dim;
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA;
 
                 int32_t a0 = (int32_t)(  (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+0] << 0)  |
                                          (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+1] << 8)  |
@@ -721,7 +751,7 @@ static inline void lib_MACI32(Iss *iss, int md, int ms1, int ms2) {
                                          (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+1] << 8)  |
                                          (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+2] << 16) |
                                          (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+3] << 24));
-                
+
                 accumulator += (int64_t)a0 * b0;
 
 
@@ -748,16 +778,16 @@ static inline void lib_MACI32(Iss *iss, int md, int ms1, int ms2) {
 
     /*
     printf("\n--- (mma.saw)(md=%d) - Logical: %dx%d ---\n", md, M, N);
-    
+
     for (int r = md; r < 4 ; r++) {
-        
+
         printf("Physical Register acc%d:\n", r);
 
-        for(int i = 0; i < dim; i++) { 
+        for(int i = 0; i < dim; i++) {
             printf("  Row %d: ", i);
-            
-            for(int w = 0; w < dim; w++) { 
-                printf("[%02x %02x %02x %02x] ", 
+
+            for(int w = 0; w < dim; w++) {
+                printf("[%02x %02x %02x %02x] ",
                     iss->quadrilatero.mregfile.maccregs[r][i][w*4+0],
                     iss->quadrilatero.mregfile.maccregs[r][i][w*4+1],
                     iss->quadrilatero.mregfile.maccregs[r][i][w*4+2],
@@ -772,13 +802,13 @@ static inline void lib_MACI32(Iss *iss, int md, int ms1, int ms2) {
 }
 
 static inline void lib_MACI16(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
+
     if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
         printf("(mac.i16) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
         return;
@@ -786,59 +816,59 @@ static inline void lib_MACI16(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = ((K/2) + dim - 1) / dim; 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = ((K/2) + dim - 1) / dim;
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = ((K/2) + dim - 1) / dim; 
+    int tiles_per_row_B = ((K/2) + dim - 1) / dim;
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
 
-    
+
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
 
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.i16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
 
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.i16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
 
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.i16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     for(int m=0; m<M; m++){
         for(int n=0; n<N; n++){
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
             int row = m % dim;
             int col = n % dim;
-        
+
             int64_t accumulator = 0;
 
             for(int k = 0; k < K; k++){
-                
+
                 int colA = k / (dim * 2);
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA;
 
                 int16_t a0 = (int16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+0] << 0) |
                                         ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+1] << 8) );
-                
+
                 int16_t a1 = (int16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+2] << 0) |
                                         ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+3] << 8) );
 
@@ -876,16 +906,16 @@ static inline void lib_MACI16(Iss *iss, int md, int ms1, int ms2) {
 
     /*
     printf("\n--- (mac.i16)(md=%d) - Logical: %dx%d ---\n", md, M, N);
-    
+
     for (int r = md; r < 4 ; r++) {
-        
+
         printf("Physical Register acc%d:\n", r);
 
-        for(int i = 0; i < dim; i++) { 
+        for(int i = 0; i < dim; i++) {
             printf("  Row %d: ", i);
-            
-            for(int w = 0; w < dim; w++) { 
-                printf("[%02x %02x %02x %02x] ", 
+
+            for(int w = 0; w < dim; w++) {
+                printf("[%02x %02x %02x %02x] ",
                     iss->quadrilatero.mregfile.maccregs[r][i][w*4+0],
                     iss->quadrilatero.mregfile.maccregs[r][i][w*4+1],
                     iss->quadrilatero.mregfile.maccregs[r][i][w*4+2],
@@ -900,13 +930,13 @@ static inline void lib_MACI16(Iss *iss, int md, int ms1, int ms2) {
 }
 
 static inline void lib_MACI8(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
+
     if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
         printf("(mac.i8) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
         return;
@@ -914,55 +944,55 @@ static inline void lib_MACI8(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = (K + (dim * 4) - 1) / (dim * 4); 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = (K + (dim * 4) - 1) / (dim * 4);
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = (K + (dim * 4) - 1) / (dim * 4); 
+    int tiles_per_row_B = (K + (dim * 4) - 1) / (dim * 4);
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
 
-    
+
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
 
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.i8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
 
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.i8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
 
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.i8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     for(int m = 0; m < M; m++){
         for(int n = 0; n < N; n++){
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
             int row = m % dim;
             int col = n % dim;
-        
+
             int64_t accumulator = 0;
 
             for(int k = 0; k < K; k += 4){
-                
+
                 int colA = k / (dim * 4);
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA;
 
                 int depth = (k / 4) % dim;
 
@@ -1009,13 +1039,13 @@ static inline void lib_MACI8(Iss *iss, int md, int ms1, int ms2) {
 }
 
 static inline void lib_MACU32(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
+
     if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
         printf("(mac.u32) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
         return;
@@ -1023,55 +1053,55 @@ static inline void lib_MACU32(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = (K + dim - 1) / dim; 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = (K + dim - 1) / dim;
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = (K + dim - 1) / dim; 
+    int tiles_per_row_B = (K + dim - 1) / dim;
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
-    
+
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
 
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.u32) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
 
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.u32) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
 
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.u32) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     for(int m=0; m<M; m++){
         for(int n=0; n<N; n++){
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
             int row = m % dim;
             int col = n % dim;
-        
+
             uint64_t accumulator = 0;
 
             for(int k = 0; k < K; k++){
-                
+
                 int colA = k / dim;
                 int rowA = k % dim;
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA;
 
                 uint32_t a0 = (uint32_t)( (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+0] << 0)  |
                                           (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+1] << 8)  |
@@ -1082,7 +1112,7 @@ static inline void lib_MACU32(Iss *iss, int md, int ms1, int ms2) {
                                           (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+1] << 8)  |
                                           (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+2] << 16) |
                                           (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+3] << 24));
-                
+
                 accumulator += (uint64_t)a0 * b0;
             }
 
@@ -1104,13 +1134,13 @@ static inline void lib_MACU32(Iss *iss, int md, int ms1, int ms2) {
 }
 
 static inline void lib_MACU16(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
+
     if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
         printf("(mac.u16) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
         return;
@@ -1118,59 +1148,59 @@ static inline void lib_MACU16(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = ((K/2) + dim - 1) / dim; 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = ((K/2) + dim - 1) / dim;
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = ((K/2) + dim - 1) / dim; 
+    int tiles_per_row_B = ((K/2) + dim - 1) / dim;
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
 
-    
+
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
 
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.u16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
 
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.u16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
 
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.u16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     for(int m=0; m<M; m++){
         for(int n=0; n<N; n++){
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
             int row = m % dim;
             int col = n % dim;
-        
+
             uint64_t accumulator = 0;
 
             for(int k = 0; k < K; k++){
-                
+
                 int colA = k / (dim * 2);
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA;
 
                 uint16_t a0 = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+0] << 0) |
                                           ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+1] << 8) );
-                
+
                 uint16_t a1 = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+2] << 0) |
                                           ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+3] << 8) );
 
@@ -1204,13 +1234,13 @@ static inline void lib_MACU16(Iss *iss, int md, int ms1, int ms2) {
 }
 
 static inline void lib_MACU8(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
+
     if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
         printf("(mac.u8) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
         return;
@@ -1218,55 +1248,55 @@ static inline void lib_MACU8(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = (K + (dim * 4) - 1) / (dim * 4); 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = (K + (dim * 4) - 1) / (dim * 4);
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = (K + (dim * 4) - 1) / (dim * 4); 
+    int tiles_per_row_B = (K + (dim * 4) - 1) / (dim * 4);
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
 
-    
+
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
 
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.u8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
 
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.u8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
 
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.u8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     for(int m = 0; m < M; m++){
         for(int n = 0; n < N; n++){
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
             int row = m % dim;
             int col = n % dim;
-        
+
             uint64_t accumulator = 0;
 
             for(int k = 0; k < K; k += 4){
-                
+
                 int colA = k / (dim * 4);
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA;
 
                 int depth = (k / 4) % dim;
 
@@ -1312,14 +1342,14 @@ static inline void lib_MACU8(Iss *iss, int md, int ms1, int ms2) {
 }
 
 static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
-    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23}; 
+
+    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23};
 
     int old_frm = setFFRoundingMode(iss, iss->csr.fcsr.frm);
 
@@ -1330,44 +1360,44 @@ static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = (K + dim - 1) / dim; 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = (K + dim - 1) / dim;
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = (K + dim - 1) / dim; 
+    int tiles_per_row_B = (K + dim - 1) / dim;
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
 
-    
+
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
 
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.fp32) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
 
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.fp32) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
 
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.fp32) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     for(int m=0; m<M; m++){
         for(int n=0; n<N; n++){
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
             int row = m % dim;
             int col = n % dim;
 
@@ -1376,12 +1406,12 @@ static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
             flexfloat_set_bits(&ff_acc, 0x00000000);
 
             for(int k = 0; k < K; k++){
-                
+
                 int colA = k / dim;
                 int rowA = k % dim;
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA;
 
                 int32_t a0 = (int32_t)(  (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+0] << 0)  |
                                          (iss->quadrilatero.mregfile.mregs[mA][rowA][(row*4)+1] << 8)  |
@@ -1392,9 +1422,9 @@ static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
                                          (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+1] << 8)  |
                                          (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+2] << 16) |
                                          (iss->quadrilatero.mregfile.mregs[mB][rowA][(col*4)+3] << 24));
-                
+
                 flexfloat_t ff_a0, ff_b0;
-                
+
                 ff_a0.desc = desc_fp32;
                 ff_b0.desc = desc_fp32;
 
@@ -1419,7 +1449,7 @@ static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
 
             flexfloat_t ff_final;
             ff_final.desc = desc_fp32;
-            
+
             feclearexcept(FE_ALL_EXCEPT);
             ff_add(&ff_final, &ff_acc, &ff_prev);
             update_fflags_fenv(iss);
@@ -1438,16 +1468,16 @@ static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
     restoreFFRoundingMode(old_frm);
     /*
     printf("\n--- (fmac.w)(md=%d) - Logical: %dx%d ---\n", md, M, N);
-    
+
     for (int r = md; r < 4 ; r++) {
-        
+
         printf("Physical Register acc%d:\n", r);
 
-        for(int i = 0; i < dim; i++) { 
+        for(int i = 0; i < dim; i++) {
             printf("  Row %d: ", i);
-            
-            for(int w = 0; w < dim; w++) { 
-                printf("[%02x %02x %02x %02x] ", 
+
+            for(int w = 0; w < dim; w++) {
+                printf("[%02x %02x %02x %02x] ",
                     iss->quadrilatero.mregfile.maccregs[r][i][w*4+0],
                     iss->quadrilatero.mregfile.maccregs[r][i][w*4+1],
                     iss->quadrilatero.mregfile.maccregs[r][i][w*4+2],
@@ -1462,7 +1492,7 @@ static inline void lib_MACF32(Iss *iss, int md, int ms1, int ms2) {
 }
 
 static inline void lib_MACF16(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
@@ -1476,44 +1506,44 @@ static inline void lib_MACF16(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = ((K/2) + dim - 1) / dim; 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = ((K/2) + dim - 1) / dim;
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = ((K/2) + dim - 1) / dim; 
+    int tiles_per_row_B = ((K/2) + dim - 1) / dim;
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
 
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.fp16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.fp16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.fp16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     flexfloat_desc_t desc_fp16 = (flexfloat_desc_t){5, 10};
-    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23}; 
+    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23};
     int old_frm = setFFRoundingMode(iss, iss->csr.fcsr.frm);
 
     for(int m = 0; m < M; m++){
         for(int n = 0; n < N; n++){
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
             int row = m % dim;
             int col = n % dim;
 
@@ -1522,15 +1552,15 @@ static inline void lib_MACF16(Iss *iss, int md, int ms1, int ms2) {
             flexfloat_set_bits(&ff_acc, 0x00000000);
 
             for(int k = 0; k < K; k++){
-                
+
                 int colA = k / (dim * 2);
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA;
 
                 uint16_t a0_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+0] << 0) |
                                                ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+1] << 8) );
-                
+
                 uint16_t a1_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+2] << 0) |
                                                ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+3] << 8) );
 
@@ -1544,7 +1574,7 @@ static inline void lib_MACF16(Iss *iss, int md, int ms1, int ms2) {
                 flexfloat_t ff_a0, ff_b0, ff_a0_32, ff_b0_32;
                 ff_a0.desc = desc_fp16; flexfloat_set_bits(&ff_a0, a0_bits);
                 ff_b0.desc = desc_fp16; flexfloat_set_bits(&ff_b0, b0_bits);
-                
+
                 ff_a0_32.desc = desc_fp32; ff_a0_32.value = ff_a0.value;
                 ff_b0_32.desc = desc_fp32; ff_b0_32.value = ff_b0.value;
 
@@ -1578,26 +1608,55 @@ static inline void lib_MACF16(Iss *iss, int md, int ms1, int ms2) {
             flexfloat_t ff_prev, ff_final;
             ff_prev.desc  = desc_fp32; flexfloat_set_bits(&ff_prev, prev_md_bits);
             ff_final.desc = desc_fp32;
-            
+
             feclearexcept(FE_ALL_EXCEPT);
             ff_add(&ff_final, &ff_acc, &ff_prev);
             update_fflags_fenv(iss);
 
             uint32_t final_bits = flexfloat_get_bits(&ff_final);
-            
+
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+0] = (uint8_t)(final_bits & 0xFF);
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+1] = (uint8_t)((final_bits >> 8) & 0xFF);
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+2] = (uint8_t)((final_bits >> 16) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);                            
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);
         }
     }
 
     restoreFFRoundingMode(old_frm);
 
+    /*
+    // DEBUG
+    printf("\n--- (mac.fp16)(md=%d, ms1=%d, ms2=%d) - Logical: %dx%d (K=%d) ---\n",
+           md, ms1, ms2, M, N, K);
+
+    for (int r = md; r < md + tot_reg; r++) {
+
+        printf("Physical Register acc%d:\n", r);
+
+        for (int i = 0; i < dim; i++) {
+
+            printf("  Row %d: ", i);
+
+            for (int w = 0; w < dim; w++) {
+
+                printf("[%02x %02x %02x %02x] ",
+                    iss->quadrilatero.mregfile.maccregs[r][i][w*4+0],
+                    iss->quadrilatero.mregfile.maccregs[r][i][w*4+1],
+                    iss->quadrilatero.mregfile.maccregs[r][i][w*4+2],
+                    iss->quadrilatero.mregfile.maccregs[r][i][w*4+3]);
+            }
+
+            printf("\n");
+        }
+    }
+
+    printf("--------------------------------------------------\n");
+    */
+
 }
 
 static inline void lib_MACBF16(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
@@ -1611,46 +1670,46 @@ static inline void lib_MACBF16(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = ((K/2) + dim - 1) / dim; 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = ((K/2) + dim - 1) / dim;
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = ((K/2) + dim - 1) / dim; 
+    int tiles_per_row_B = ((K/2) + dim - 1) / dim;
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
 
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.bf16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.bf16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.bf16) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     // --- MODIFICA CRUCIALE: Descrittore Bfloat16 (8 esponente, 7 mantissa) ---
     flexfloat_desc_t desc_bf16 = (flexfloat_desc_t){8, 7};
-    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23}; 
-    
+    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23};
+
     int old_frm = setFFRoundingMode(iss, iss->csr.fcsr.frm);
 
     for(int m = 0; m < M; m++){
         for(int n = 0; n < N; n++){
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
             int row = m % dim;
             int col = n % dim;
 
@@ -1659,15 +1718,15 @@ static inline void lib_MACBF16(Iss *iss, int md, int ms1, int ms2) {
             flexfloat_set_bits(&ff_acc, 0x00000000);
 
             for(int k = 0; k < K; k++){
-                
+
                 int colA = k / (dim * 2);
 
                 int mA = ms1 + ( rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + ( colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + ( colC * tiles_per_row_B) + colA;
 
                 uint16_t a0_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+0] << 0) |
                                                ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+1] << 8) );
-                
+
                 uint16_t a1_bits = (uint16_t)( ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+2] << 0) |
                                                ((uint8_t)iss->quadrilatero.mregfile.mregs[mA][k/2][(row*4)+3] << 8) );
 
@@ -1679,11 +1738,11 @@ static inline void lib_MACBF16(Iss *iss, int md, int ms1, int ms2) {
 
 
                 flexfloat_t ff_a0, ff_b0, ff_a0_32, ff_b0_32;
-                
+
                 // Set usiamo il descrittore desc_bf16
                 ff_a0.desc = desc_bf16; flexfloat_set_bits(&ff_a0, a0_bits);
                 ff_b0.desc = desc_bf16; flexfloat_set_bits(&ff_b0, b0_bits);
-                
+
                 ff_a0_32.desc = desc_fp32; ff_a0_32.value = ff_a0.value;
                 ff_b0_32.desc = desc_fp32; ff_b0_32.value = ff_b0.value;
 
@@ -1695,7 +1754,7 @@ static inline void lib_MACBF16(Iss *iss, int md, int ms1, int ms2) {
 
                 if(k < K) {
                     flexfloat_t ff_a1, ff_b1, ff_a1_32, ff_b1_32;
-                    
+
                     // Set usiamo il descrittore desc_bf16
                     ff_a1.desc = desc_bf16; flexfloat_set_bits(&ff_a1, a1_bits);
                     ff_b1.desc = desc_bf16; flexfloat_set_bits(&ff_b1, b1_bits);
@@ -1719,17 +1778,17 @@ static inline void lib_MACBF16(Iss *iss, int md, int ms1, int ms2) {
             flexfloat_t ff_prev, ff_final;
             ff_prev.desc  = desc_fp32; flexfloat_set_bits(&ff_prev, prev_md_bits);
             ff_final.desc = desc_fp32;
-            
+
             feclearexcept(FE_ALL_EXCEPT);
             ff_add(&ff_final, &ff_acc, &ff_prev);
             update_fflags_fenv(iss);
 
             uint32_t final_bits = flexfloat_get_bits(&ff_final);
-            
+
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+0] = (uint8_t)(final_bits & 0xFF);
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+1] = (uint8_t)((final_bits >> 8) & 0xFF);
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+2] = (uint8_t)((final_bits >> 16) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);                            
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);
         }
     }
 
@@ -1738,13 +1797,13 @@ static inline void lib_MACBF16(Iss *iss, int md, int ms1, int ms2) {
 }
 
 static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
+
     if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
         printf("(mac.fp8) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
         return;
@@ -1752,44 +1811,44 @@ static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = (K + (dim * 4) - 1) / (dim * 4); 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = (K + (dim * 4) - 1) / (dim * 4);
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = (K + (dim * 4) - 1) / (dim * 4); 
+    int tiles_per_row_B = (K + (dim * 4) - 1) / (dim * 4);
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
 
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.fp8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.fp8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.fp8) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     flexfloat_desc_t desc_fp8  = (flexfloat_desc_t){4, 3}; // E4M3
-    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23}; 
+    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23};
     int old_frm = setFFRoundingMode(iss, iss->csr.fcsr.frm);
 
     for (int m = 0; m < M; m++) {
         for (int n = 0; n < N; n++) {
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
 
             int row = m % dim;
             int col = n % dim;
@@ -1799,12 +1858,12 @@ static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
             flexfloat_set_bits(&ff_acc, 0x00000000);
 
             for (int k = 0; k < K; k += 4) {
-                
+
 
                 int colA = k / (dim * 4);
 
                 int mA = ms1 + (rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + (colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + (colC * tiles_per_row_B) + colA;
 
                 int depth = (k / 4) % dim;
 
@@ -1822,7 +1881,7 @@ static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
                     flexfloat_t ff_a0, ff_b0, ff_a0_32, ff_b0_32;
                     ff_a0.desc = desc_fp8; flexfloat_set_bits(&ff_a0, a0_bits);
                     ff_b0.desc = desc_fp8; flexfloat_set_bits(&ff_b0, b0_bits);
-                    
+
                     ff_a0_32.desc = desc_fp32; ff_a0_32.value = ff_a0.value;
                     ff_b0_32.desc = desc_fp32; ff_b0_32.value = ff_b0.value;
 
@@ -1835,7 +1894,7 @@ static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
                     flexfloat_t ff_a1, ff_b1, ff_a1_32, ff_b1_32;
                     ff_a1.desc = desc_fp8; flexfloat_set_bits(&ff_a1, a1_bits);
                     ff_b1.desc = desc_fp8; flexfloat_set_bits(&ff_b1, b1_bits);
-                    
+
                     ff_a1_32.desc = desc_fp32; ff_a1_32.value = ff_a1.value;
                     ff_b1_32.desc = desc_fp32; ff_b1_32.value = ff_b1.value;
 
@@ -1848,7 +1907,7 @@ static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
                     flexfloat_t ff_a2, ff_b2, ff_a2_32, ff_b2_32;
                     ff_a2.desc = desc_fp8; flexfloat_set_bits(&ff_a2, a2_bits);
                     ff_b2.desc = desc_fp8; flexfloat_set_bits(&ff_b2, b2_bits);
-                    
+
                     ff_a2_32.desc = desc_fp32; ff_a2_32.value = ff_a2.value;
                     ff_b2_32.desc = desc_fp32; ff_b2_32.value = ff_b2.value;
 
@@ -1861,7 +1920,7 @@ static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
                     flexfloat_t ff_a3, ff_b3, ff_a3_32, ff_b3_32;
                     ff_a3.desc = desc_fp8; flexfloat_set_bits(&ff_a3, a3_bits);
                     ff_b3.desc = desc_fp8; flexfloat_set_bits(&ff_b3, b3_bits);
-                    
+
                     ff_a3_32.desc = desc_fp32; ff_a3_32.value = ff_a3.value;
                     ff_b3_32.desc = desc_fp32; ff_b3_32.value = ff_b3.value;
 
@@ -1879,7 +1938,7 @@ static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
             flexfloat_t ff_prev, ff_final;
             ff_prev.desc  = desc_fp32; flexfloat_set_bits(&ff_prev, prev_md_bits);
             ff_final.desc = desc_fp32;
-            
+
             feclearexcept(FE_ALL_EXCEPT);
             ff_add(&ff_final, &ff_acc, &ff_prev);
             update_fflags_fenv(iss);
@@ -1889,7 +1948,7 @@ static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+0] = (uint8_t)(final_bits & 0xFF);
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+1] = (uint8_t)((final_bits >> 8) & 0xFF);
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+2] = (uint8_t)((final_bits >> 16) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);                            
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);
         }
     }
 
@@ -1898,13 +1957,13 @@ static inline void lib_MACF8(Iss *iss, int md, int ms1, int ms2) {
 }
 
 static inline void lib_MACF8_E5M2(Iss *iss, int md, int ms1, int ms2) {
-    
+
     int rmul = iss->csr.matrix_rmul.value;
     int cmul = iss->csr.matrix_cmul.value;
     int N = iss->csr.matrix_n.value;
     int M = iss->csr.matrix_m.value;
     int K = iss->csr.matrix_k.value;
-    
+
     if (md % (cmul * rmul) != 0 || ms1 % rmul != 0 || ms2 % cmul != 0){
         printf("(mac.e5m2) HARDWARE TRAP: The selected register is invalid for result matrix; it must be a multiple of %d\n", rmul * cmul);
         return;
@@ -1912,46 +1971,46 @@ static inline void lib_MACF8_E5M2(Iss *iss, int md, int ms1, int ms2) {
 
     int dim = RLEN/32;
 
-    int tiles_per_row_A = (K + (dim * 4) - 1) / (dim * 4); 
-    int tiles_per_col_A = (M + dim - 1) / dim; 
+    int tiles_per_row_A = (K + (dim * 4) - 1) / (dim * 4);
+    int tiles_per_col_A = (M + dim - 1) / dim;
 
-    int tiles_per_row_B = (K + (dim * 4) - 1) / (dim * 4); 
+    int tiles_per_row_B = (K + (dim * 4) - 1) / (dim * 4);
     int tiles_per_col_B = (N + dim - 1) / dim;
 
-    int tiles_per_row_C = (N + dim - 1) / dim; 
+    int tiles_per_row_C = (N + dim - 1) / dim;
     int tiles_per_col_C = (M + dim - 1) / dim;
 
     int tot_reg = tiles_per_row_A * tiles_per_col_A;
-    if (ms1 + tot_reg > ISS_NB_MREGS) {             
+    if (ms1 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.e5m2) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms1);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_B * tiles_per_col_B;
-    if (ms2 + tot_reg > ISS_NB_MREGS) {             
+    if (ms2 + tot_reg > ISS_NB_MREGS) {
         printf("(mac.e5m2) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, ms2);
-        return; 
+        return;
     }
 
     tot_reg = tiles_per_row_C * tiles_per_col_C;
-    if (md + tot_reg > ISS_NB_ACCREGS) {             
+    if (md + tot_reg > ISS_NB_ACCREGS) {
         printf("(mac.e5m2) HARDWARE TRAP: Too many registers required (needs %d, max from md %d)\n", tot_reg, md);
-        return; 
+        return;
     }
 
     // --- MODIFICA CRUCIALE: Descrittore FP8 E5M2 ---
     flexfloat_desc_t desc_fp8  = (flexfloat_desc_t){5, 2}; // 5 bit esponente, 2 bit mantissa (più 1 bit segno)
-    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23}; 
-    
+    flexfloat_desc_t desc_fp32 = (flexfloat_desc_t){8, 23};
+
     int old_frm = setFFRoundingMode(iss, iss->csr.fcsr.frm);
 
     for (int m = 0; m < M; m++) {
         for (int n = 0; n < N; n++) {
 
-            int rowC = m / dim;  
-            int colC = n / dim;  
+            int rowC = m / dim;
+            int colC = n / dim;
             int mdC = md + (rowC * tiles_per_row_C) + colC;
-             
+
             int row = m % dim;
             int col = n % dim;
 
@@ -1960,11 +2019,11 @@ static inline void lib_MACF8_E5M2(Iss *iss, int md, int ms1, int ms2) {
             flexfloat_set_bits(&ff_acc, 0x00000000);
 
             for (int k = 0; k < K; k += 4) {
-                
+
                 int colA = k / (dim * 4);
 
                 int mA = ms1 + (rowC * tiles_per_row_A) + colA;
-                int mB = ms2 + (colC * tiles_per_row_B) + colA; 
+                int mB = ms2 + (colC * tiles_per_row_B) + colA;
 
                 int depth = (k / 4) % dim;
 
@@ -1982,7 +2041,7 @@ static inline void lib_MACF8_E5M2(Iss *iss, int md, int ms1, int ms2) {
                     flexfloat_t ff_a0, ff_b0, ff_a0_32, ff_b0_32;
                     ff_a0.desc = desc_fp8; flexfloat_set_bits(&ff_a0, a0_bits);
                     ff_b0.desc = desc_fp8; flexfloat_set_bits(&ff_b0, b0_bits);
-                    
+
                     ff_a0_32.desc = desc_fp32; ff_a0_32.value = ff_a0.value;
                     ff_b0_32.desc = desc_fp32; ff_b0_32.value = ff_b0.value;
 
@@ -1995,7 +2054,7 @@ static inline void lib_MACF8_E5M2(Iss *iss, int md, int ms1, int ms2) {
                     flexfloat_t ff_a1, ff_b1, ff_a1_32, ff_b1_32;
                     ff_a1.desc = desc_fp8; flexfloat_set_bits(&ff_a1, a1_bits);
                     ff_b1.desc = desc_fp8; flexfloat_set_bits(&ff_b1, b1_bits);
-                    
+
                     ff_a1_32.desc = desc_fp32; ff_a1_32.value = ff_a1.value;
                     ff_b1_32.desc = desc_fp32; ff_b1_32.value = ff_b1.value;
 
@@ -2008,7 +2067,7 @@ static inline void lib_MACF8_E5M2(Iss *iss, int md, int ms1, int ms2) {
                     flexfloat_t ff_a2, ff_b2, ff_a2_32, ff_b2_32;
                     ff_a2.desc = desc_fp8; flexfloat_set_bits(&ff_a2, a2_bits);
                     ff_b2.desc = desc_fp8; flexfloat_set_bits(&ff_b2, b2_bits);
-                    
+
                     ff_a2_32.desc = desc_fp32; ff_a2_32.value = ff_a2.value;
                     ff_b2_32.desc = desc_fp32; ff_b2_32.value = ff_b2.value;
 
@@ -2021,7 +2080,7 @@ static inline void lib_MACF8_E5M2(Iss *iss, int md, int ms1, int ms2) {
                     flexfloat_t ff_a3, ff_b3, ff_a3_32, ff_b3_32;
                     ff_a3.desc = desc_fp8; flexfloat_set_bits(&ff_a3, a3_bits);
                     ff_b3.desc = desc_fp8; flexfloat_set_bits(&ff_b3, b3_bits);
-                    
+
                     ff_a3_32.desc = desc_fp32; ff_a3_32.value = ff_a3.value;
                     ff_b3_32.desc = desc_fp32; ff_b3_32.value = ff_b3.value;
 
@@ -2039,7 +2098,7 @@ static inline void lib_MACF8_E5M2(Iss *iss, int md, int ms1, int ms2) {
             flexfloat_t ff_prev, ff_final;
             ff_prev.desc  = desc_fp32; flexfloat_set_bits(&ff_prev, prev_md_bits);
             ff_final.desc = desc_fp32;
-            
+
             feclearexcept(FE_ALL_EXCEPT);
             ff_add(&ff_final, &ff_acc, &ff_prev);
             update_fflags_fenv(iss);
@@ -2049,7 +2108,7 @@ static inline void lib_MACF8_E5M2(Iss *iss, int md, int ms1, int ms2) {
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+0] = (uint8_t)(final_bits & 0xFF);
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+1] = (uint8_t)((final_bits >> 8) & 0xFF);
             iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+2] = (uint8_t)((final_bits >> 16) & 0xFF);
-            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);                            
+            iss->quadrilatero.mregfile.maccregs[mdC][row][col*4+3] = (uint8_t)((final_bits >> 24) & 0xFF);
         }
     }
 
@@ -2059,32 +2118,32 @@ static inline void lib_MACF8_E5M2(Iss *iss, int md, int ms1, int ms2) {
 
 
 static inline void lib_MAC(Iss *iss, int md, int ms1, int ms2) {
-    
+
     //printf("DT a:%d\n",iss->csr.matrix_dt_a.value);
 
     switch (iss->csr.matrix_dt_a.value) {
         case INT32:     lib_MACI32(iss, md, ms1, ms2);  break;
-        
-        case INT16:     lib_MACI16(iss, md, ms1, ms2);  break;    
+
+        case INT16:     lib_MACI16(iss, md, ms1, ms2);  break;
 
         case INT8:      lib_MACI8(iss, md, ms1, ms2);   break;
 
         case UINT32:    lib_MACU32(iss, md, ms1, ms2);  break;
-        
-        case UINT16:    lib_MACU16(iss, md, ms1, ms2);  break;    
+
+        case UINT16:    lib_MACU16(iss, md, ms1, ms2);  break;
 
         case UINT8:     lib_MACU8(iss, md, ms1, ms2);   break;
 
         case FP32:      lib_MACF32(iss, md, ms1, ms2);  break;
-            
+
         case FP16:      lib_MACF16(iss, md, ms1, ms2);  break;
 
         case BFP16:     lib_MACBF16(iss, md, ms1, ms2); break;
-            
+
         case FP8E4M3:   lib_MACF8(iss, md, ms1, ms2);   break;
 
         case FP8E5M2:   lib_MACF8_E5M2(iss, md, ms1, ms2);   break;
-            
+
         default:
             printf("[ERROR] FATAL: Unsupported matrix_dt_a value (%d) in lib_MAC!\n", iss->csr.matrix_dt_a.value);
             break;
